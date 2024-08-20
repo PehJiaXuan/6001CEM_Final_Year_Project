@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - POSify</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Payment</h1>
+        <p>Thank you for your order! Please proceed with the payment below.</p>
+
+        <!-- Payment Form -->
+        <form id="payment-form" action="{{ url_for('payment_success') }}" method="POST">
+            <label for="card-number">Card Number:</label>
+            <input type="text" id="card-number" name="card_number" required>
+
+            <label for="expiry-date">Expiry Date:</label>
+            <input type="text" id="expiry-date" name="expiry_date" placeholder="MM/YY" required>
+
+            <label for="cvv">CVV:</label>
+            <input type="text" id="cvv" name="cvv" required>
+
+            <button type="submit">Submit Payment</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - POS System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="POSify Logo" class="logo">
+        <h1>POSify: A Professional and Modernized Point of Sale (POS) System</h1>
+        <div class="form-container">
+            <form action="{{ url_for('login') }}" method="post">
+                {{ form.hidden_tag() }}
+                <label for="email">{{ form.email.label }}</label>
+                {{ form.email }}
+                {% for error in form.email.errors %}
+                    <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+                <label for="password">{{ form.password.label }}</label>
+                {{ form.password }}
+                {% for error in form.password.errors %}
+                    <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+                {{ form.submit }}
+            </form>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul>
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

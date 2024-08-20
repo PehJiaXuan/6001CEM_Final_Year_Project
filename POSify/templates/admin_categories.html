@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Manage Categories</h1>
+    <form id="add-category-form" class="form-inline mb-4">
+        <div class="form-group">
+            <input type="text" id="category-name" class="form-control mr-2" placeholder="Category Name" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Category</button>
+    </form>
+    <div id="category-error-message" class="alert alert-danger" style="display:none;"></div>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Category Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+            <tr data-id="{{ category }}">
+                <td class="category-name">{{ category }}</td>
+                <td>
+                    <button class="btn btn-warning edit-btn">Edit</button>
+                    <button class="btn btn-danger delete-btn">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div id="edit-category-modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Category</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit-category-id">
+                    <div class="form-group">
+                        <label for="edit-category-name">Category Name</label>
+                        <input type="text" id="edit-category-name" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="save-edit-btn">Save changes</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('add-category-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const name = document.getElementById('category-name').value;
+        fetch('/add_category', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({name: name}),
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                document.getElementById('category-error-message').textContent = data.message;
+                document.getElementById('category-error-message').style.display = 'block';
+            }
+        });
+    });
+
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const categoryId = this.closest('tr').getAttribute('data-id');
+            fetch(`/delete_category/${categoryId}`, {
+                method: 'DELETE'
+            }).then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error deleting category');
+                }
+            });
+        });
+    });
+
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const categoryId = this.closest('tr').getAttribute('data-id');
+            const categoryName = this.closest('tr').querySelector('.category-name').textContent;
+            document.getElementById('edit-category-id').value = categoryId;
+            document.getElementById('edit-category-name').value = categoryName;
+            $('#edit-category-modal').modal('show');
+        });
+    });
+
+    document.getElementById('save-edit-btn').addEventListener('click', function() {
+        const categoryId = document.getElementById('edit-category-id').value;
+        const newName = document.getElementById('edit-category-name').value;
+        fetch(`/edit_category/${categoryId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({new_name: newName}),
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error updating category');
+            }
+        });
+    });
+</script>
+{% endblock %}

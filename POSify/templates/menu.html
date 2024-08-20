@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Menu</h1>
+
+    <!-- Two-column layout -->
+    <div class="row">
+        <!-- Left Column: Menu Items -->
+        <div class="col-md-8">
+            <!-- Category Selection Dropdown -->
+            <div class="category-select mb-3">
+                <select id="categoryFilter" class="form-control" style="width: 100%;">
+                    <option value="all">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="menu">
+                {% for category, products in products_by_category.items() %}
+                <div class="menu-category" data-category="{{ category }}">
+                    <h2>{{ category }}</h2>
+                    <div class="category-products">
+                        {% for product in products %}
+                        <div class="menu-item" data-id="{{ product.id }}" data-name="{{ product.name }}" data-price="{{ product.price }}">
+                            <p><strong>{{ product.name }}</strong></p>
+                            <p>Price: ${{ product.price }}</p>
+                            <button class="btn btn-primary add-to-order">Add to Order</button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Divider Column -->
+        <div class="col-md-1 d-none d-md-block">
+            <div class="divider"></div>
+        </div>
+
+        <!-- Right Column: Order List -->
+        <div class="col-md-3">
+            <div class="order-list" style="border: 1px solid #ddd; padding: 15px; border-radius: 5px;">
+                <h2>Order List</h2>
+                
+                <!-- Customer Phone Number and Add Button -->
+                <div class="customer-info mb-3">
+                    <div id="customer-name-section">
+                        <label>Customer Name: <span id="customer-name"></span></label>
+                    </div>                    
+                    <label for="customer-phone">Customer Phone Number:</label>
+                    <div class="input-group">
+                        <input type="text" id="customer-phone" class="form-control" placeholder="Enter phone number">
+                        <button id="add-customer-btn" class="btn btn-primary">Add</button>
+                    </div>
+                    <!-- Error message for phone number -->
+                    <div id="phone-error-message" class="alert alert-danger" style="display:none;"></div>
+                </div>
+                
+                <ul id="order-items">
+                    <!-- Order items will be dynamically added here -->
+                </ul>
+                <div class="order-summary">
+                    <p><strong>Total:</strong> $<span id="total-price">0.00</span></p>
+                    <button id="payment-btn" class="btn btn-success">Proceed to Payment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Form Modal -->
+<div class="modal fade" id="customerFormModal" tabindex="-1" aria-labelledby="customerFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customerFormModalLabel">Add New Customer</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="customerForm">
+                    <div class="mb-3">
+                        <label for="customer-name-input" class="form-label">Customer Name</label>
+                        <input type="text" class="form-control" id="customer-name-input" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="customer-gender-input" class="form-label2">Gender</label>
+                        <select class="form-select" id="customer-gender-input" required>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Customer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+        // Filter products by category
+        $('#categoryFilter').change(function(){
+            var selectedCategory = $(this).val();
+            if (selectedCategory === 'all') {
+                $('.menu-category').show();
+            } else {
+                $('.menu-category').hide();
+                $('.menu-category[data-category="' + selectedCategory + '"]').show();
+            }
+        });
+
+        // Add products to order list
+        let orderItems = {};
+        let totalPrice = 0;
+
+        $('.add-to-order').click(function(){
+            let productId = $(this).closest('.menu-item').data('id');
+            let productName = $(this).closest('.menu-item').data('name');
+            let productPrice = parseFloat($(this).closest('.menu-item').data('price'));
+
+            if (orderItems[productId]) {
+                orderItems[productId].quantity += 1;
+                orderItems[productId].totalPrice += productPrice;
+            } else {
+                orderItems[productId] = {
+                    name: productName,
+                    price: productPrice,
+                    quantity: 1,
+                    totalPrice: productPrice
+                };
+            }
+
+            updateOrderList();
+        });
+
+        // Update order list and add delete button
+        function updateOrderList() {
+            $('#order-items').empty();
+            totalPrice = 0;
+
+            $.each(orderItems, function(productId, item){
+                $('#order-items').append(
+                    `<li data-id="${productId}" class="d-flex justify-content-between align-items-center">
+                        <span>${item.name} - ${item.quantity} x $${item.price.toFixed(2)} = $${item.totalPrice.toFixed(2)}</span>
+                        <button class="btn btn-danger btn-sm delete-item">Delete</button>
+                    </li>`
+                );
+                totalPrice += item.totalPrice;
+            });
+
+            $('#total-price').text(totalPrice.toFixed(2));
+
+            // Add delete functionality
+            $('.delete-item').click(function(){
+                let productId = $(this).closest('li').data('id');
+                delete orderItems[productId];
+                updateOrderList();
+            });
+        }
+
+        // Proceed to payment (redirect to payment page)
+        $('#payment-btn').click(function(){
+            // Perform any necessary actions before proceeding to payment
+            window.location.href = "{{ url_for('payment') }}";
+        });
+
+        // Check if the customer phone number exists in the database
+        $('#customer-phone').on('input', function() {
+            let phoneNumber = $(this).val().trim();
+
+            // Clear the customer name and show the Add button by default
+            $('#customer-name').text('');
+            $('#add-customer-btn').show();
+            $('#phone-error-message').hide(); // Hide the error message when the admin starts typing
+
+            if (phoneNumber.length > 0) {
+                $.ajax({
+                    url: "{{ url_for('check_customer_phone') }}",
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ phone: phoneNumber }),
+                    success: function(response) {
+                        if (response.exists) {
+                            $('#customer-name-section').show();
+                            $('#customer-name').text(response.customer.name);
+                            $('#add-customer-btn').hide();
+                        } else {
+                            $('#add-customer-btn').show();
+                        }
+                    }
+                });
+            }
+        });
+
+        // Show the customer form modal when Add button is clicked
+        $('#add-customer-btn').click(function() {
+            let phoneNumber = $('#customer-phone').val().trim();
+
+            // Check if the phone number field is empty
+            if (!phoneNumber) {
+                $('#phone-error-message').text('Please enter a phone number.').show();
+            } else {
+                $('#phone-error-message').hide(); // Hide the error message if the phone number is valid
+                $('#customerFormModal').modal('show');
+            }
+        });
+
+        // Handle form submission
+        $('#customerForm').submit(function(event) {
+            event.preventDefault();
+            let phoneNumber = $('#customer-phone').val().trim();
+            let customerName = $('#customer-name-input').val().trim();
+            let customerGender = $('#customer-gender-input').val();
+
+            if (customerName && customerGender) {
+                $.ajax({
+                    url: "{{ url_for('add_customer') }}",
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ name: customerName, phone: phoneNumber, gender: customerGender }),
+                    success: function(response) {
+                        if (response.success) {
+                            $('#add-customer-btn').hide();
+                            alert("Customer added successfully!");
+                            $('#customer-name').text(customerName);
+                            $('#customerFormModal').modal('hide');
+                        } else {
+                            alert("Failed to add customer. Please try again.");
+                        }
+                    }
+                });
+            }
+        });
+
+        // Hide customer name section initially
+        $('#customer-name-section').hide();
+    });
+</script>
+
+{% endblock %}
