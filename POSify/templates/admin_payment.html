@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Manage Payment Types</h1>
+    <form id="add-payment-type-form" class="form-inline mb-4">
+        <div class="form-group">
+            <input type="text" id="payment-type-name" class="form-control mr-2" placeholder="Payment Type Name" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Payment Type</button>
+    </form>
+    <div id="payment-type-error-message" class="alert alert-danger" style="display:none;"></div>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Payment Type</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment_type in payment_types %}
+            <tr data-id="{{ payment_type.id }}">
+                <td class="payment-type-name">{{ payment_type.name }}</td>
+                <td>
+                    <button class="btn btn-warning edit-btn">Edit</button>
+                    <button class="btn btn-danger delete-btn">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div id="edit-payment-type-modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Payment Type</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit-payment-type-id">
+                    <div class="form-group">
+                        <label for="edit-payment-type-name">Payment Type Name</label>
+                        <input type="text" id="edit-payment-type-name" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="save-edit-btn">Save changes</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('add-payment-type-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const name = document.getElementById('payment-type-name').value;
+        fetch('/add_payment_type', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({name: name}),
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                document.getElementById('payment-type-error-message').textContent = data.message;
+                document.getElementById('payment-type-error-message').style.display = 'block';
+            }
+        });
+    });
+
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const row = this.closest('tr');
+            const paymentTypeId = row.getAttribute('data-id');
+
+            if (confirm('Are you sure you want to delete this payment type?')) {
+                fetch(`/delete_payment_type/${paymentTypeId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+            }
+        });
+    });
+
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const row = this.closest('tr');
+            const paymentTypeId = row.getAttribute('data-id');
+            const paymentTypeName = row.querySelector('.payment-type-name').textContent;
+
+            document.getElementById('edit-payment-type-id').value = paymentTypeId;
+            document.getElementById('edit-payment-type-name').value = paymentTypeName;
+
+            $('#edit-payment-type-modal').modal('show');
+        });
+    });
+
+    document.getElementById('save-edit-btn').addEventListener('click', function() {
+        const paymentTypeId = document.getElementById('edit-payment-type-id').value;
+        const newName = document.getElementById('edit-payment-type-name').value;
+
+        fetch(`/edit_payment_type/${paymentTypeId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({new_name: newName}),
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        });
+    });
+</script>
+{% endblock %}

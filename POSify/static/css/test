@@ -1,18 +1,29 @@
+/* Shared Resources */
 body {
+    margin: 0;
     font-family: Arial, sans-serif;
 }
 
+.edit-btn {
+    margin-left: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+/* Login Page */
 .login-container {
     background-color: black;
-    height: 715px;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
-    color: white; 
-    padding: 20px; 
-    box-sizing: border-box;
+    color: white; /* Text color for better visibility on the black background */
+    padding: 20px; /* Optional padding */
+    box-sizing: border-box; /* Ensures padding is included in the element's width and height */
 }
 
 .logo {
@@ -21,11 +32,11 @@ body {
     border-radius: 100%;
     width: 20%;
     background-color: white;
-    margin-bottom: 20px;
+    margin-bottom: 20px; /* Space between the logo and the form */
 }
 
-.login-form-container {
-    background-color: #222;
+.form-container {
+    background-color: #222; /* Slightly lighter black for form background */
     padding: 20px;
     border-radius: 10px;
     width: 100%;
@@ -38,8 +49,8 @@ label {
     color: white;
 }
 
-.login-form input[type="text"],
-.login-form input[type="password"] {
+input[type="text"],
+input[type="password"] {
     width: 100%;
     padding: 10px;
     margin-bottom: 15px;
@@ -48,7 +59,7 @@ label {
     box-sizing: border-box;
 }
 
-.login-form input[type="submit"] {
+input[type="submit"] {
     width: 100%;
     padding: 10px;
     background-color: #28a745;
@@ -58,11 +69,11 @@ label {
     cursor: pointer;
 }
 
-.login-form input[type="submit"]:hover {
+input[type="submit"]:hover {
     background-color: #218838;
 }
 
-
+/* Navigation Bar */
 .sidebar {
     width: 200px;
     position: fixed;
@@ -126,6 +137,7 @@ label {
     margin: 0 auto;
 }
 
+/* Menu Page (Product Display) */
 .menu {
     margin: 20px;
 }
@@ -153,17 +165,7 @@ label {
     text-align: center;
 }
 
-.customer-info label {
-    display: block;
-    margin-bottom: 8px;
-    color: black;
-}
-
-.form-label{
-    width: 100%;
-    color: black;
-}
-
+/* Menu Page (Order List Display) */
 .order-list {
     left: -105px;
     position: relative;
@@ -204,10 +206,20 @@ label {
     cursor: pointer;
 }
 
-.edit-btn {
-    margin-left: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
+/* Category Management Page */
+.form-group {
+    top: 5px;
 }
+
+.btn-primary {
+    margin-top: -15px;
+}
+
+/* General Form Styles */
+form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 20px;
+}
+

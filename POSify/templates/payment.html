@@ -11,6 +11,16 @@
         <h1>Payment</h1>
         <p>Thank you for your order! Please proceed with the payment below.</p>
 
+        <!-- Display Total Amount -->
+        <h2>Total Amount: RM<span id="total-amount">{{ total_amount }}</span></h2>
+
+        <!-- Payment Type Buttons -->
+        <div class="payment-types my-4">
+            {% for payment_type in payment_types %}
+            <button type="button" class="btn btn-outline-primary payment-type-btn" data-type="{{ payment_type.name }}">{{ payment_type.name }}</button>
+            {% endfor %}
+        </div>
+
         <!-- Payment Form -->
         <form id="payment-form" action="{{ url_for('payment_success') }}" method="POST">
             <label for="card-number">Card Number:</label>
@@ -22,7 +32,12 @@
             <label for="cvv">CVV:</label>
             <input type="text" id="cvv" name="cvv" required>
 
-            <button type="submit">Submit Payment</button>
+            <!-- Display Total Amount Again Below Form -->
+            <div class="mt-4">
+                <h2>Total Amount: RM<span id="total-amount">{{ total_amount }}</span></h2>
+            </div>
+
+            <button type="submit" class="btn btn-success">Submit Payment</button>
         </form>
     </div>
 </body>

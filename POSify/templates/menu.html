@@ -26,7 +26,7 @@
                         {% for product in products %}
                         <div class="menu-item" data-id="{{ product.id }}" data-name="{{ product.name }}" data-price="{{ product.price }}">
                             <p><strong>{{ product.name }}</strong></p>
-                            <p>Price: ${{ product.price }}</p>
+                            <p>Price: RM{{ product.price }}</p>
                             <button class="btn btn-primary add-to-order">Add to Order</button>
                         </div>
                         {% endfor %}
@@ -64,8 +64,8 @@
                     <!-- Order items will be dynamically added here -->
                 </ul>
                 <div class="order-summary">
-                    <p><strong>Total:</strong> $<span id="total-price">0.00</span></p>
-                    <button id="payment-btn" class="btn btn-success">Proceed to Payment</button>
+                    <p><strong>Total:</strong> RM<span id="total-price">0.00</span></p>
+                    <button id="payment-btn" class="btn btn-success" style="display:none;">Proceed to Payment</button>
                 </div>
             </div>
         </div>
@@ -89,7 +89,7 @@
                         <input type="text" class="form-control" id="customer-name-input" required>
                     </div>
                     <div class="mb-4">
-                        <label for="customer-gender-input" class="form-label2">Gender</label>
+                        <label for="customer-gender-input" class="form-label">Gender</label>
                         <select class="form-select" id="customer-gender-input" required>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
@@ -139,7 +139,7 @@
             updateOrderList();
         });
 
-        // Update order list and add delete button
+        // Update order list and add increase/decrease buttons
         function updateOrderList() {
             $('#order-items').empty();
             totalPrice = 0;
@@ -147,7 +147,13 @@
             $.each(orderItems, function(productId, item){
                 $('#order-items').append(
                     `<li data-id="${productId}" class="d-flex justify-content-between align-items-center">
-                        <span>${item.name} - ${item.quantity} x $${item.price.toFixed(2)} = $${item.totalPrice.toFixed(2)}</span>
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-secondary btn-sm decrease-quantity">-</button>
+                            <span class="mx-2">${item.quantity}</span>
+                            <button class="btn btn-secondary btn-sm increase-quantity">+</button>
+                            <span class="mx-3">${item.name}</span>
+                        </div>
+                        <span>$${item.totalPrice.toFixed(2)}</span>
                         <button class="btn btn-danger btn-sm delete-item">Delete</button>
                     </li>`
                 );
@@ -156,12 +162,38 @@
 
             $('#total-price').text(totalPrice.toFixed(2));
 
+            // Add increase/decrease functionality
+            $('.increase-quantity').click(function(){
+                let productId = $(this).closest('li').data('id');
+                orderItems[productId].quantity += 1;
+                orderItems[productId].totalPrice = orderItems[productId].quantity * orderItems[productId].price;
+                updateOrderList();
+            });
+
+            $('.decrease-quantity').click(function(){
+                let productId = $(this).closest('li').data('id');
+                if (orderItems[productId].quantity > 1) {
+                    orderItems[productId].quantity -= 1;
+                    orderItems[productId].totalPrice = orderItems[productId].quantity * orderItems[productId].price;
+                } else {
+                    delete orderItems[productId];
+                }
+                updateOrderList();
+            });
+
             // Add delete functionality
             $('.delete-item').click(function(){
                 let productId = $(this).closest('li').data('id');
                 delete orderItems[productId];
                 updateOrderList();
             });
+
+            // Hide the payment button if there are no items in the order
+            if ($.isEmptyObject(orderItems)) {
+                $('#payment-btn').hide();
+            } else {
+                $('#payment-btn').show();
+            }
         }
 
         // Proceed to payment (redirect to payment page)
@@ -237,9 +269,6 @@
                 });
             }
         });
-
-        // Hide customer name section initially
-        $('#customer-name-section').hide();
     });
 </script>
 

@@ -246,7 +246,6 @@ def add_product():
         if not category_ref.get().exists:
             category_ref.set({})
 
-    # Add product to Firestore
     product_ref = db.collection('products').document()
     product_ref.set({
         'name': name,
@@ -269,7 +268,6 @@ def edit_product(product_id):
     if not name or not price or not category:
         return jsonify({'success': False, 'message': 'Invalid product data'})
 
-    # Update product in Firestore
     product_ref = db.collection('products').document(product_id)
     product_ref.update({
         'name': name,
@@ -283,9 +281,12 @@ def edit_product(product_id):
 @app.route('/delete_product/<product_id>', methods=['DELETE'])
 @login_required
 def delete_product(product_id):
-    # Delete product from Firestore
-    db.collection('products').document(product_id).delete()
-    return jsonify({'success': True})
+    try:
+        db.collection('products').document(product_id).delete()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
 
 @app.route('/sales')
 @login_required
@@ -347,6 +348,54 @@ def add_customer():
 def get_products(category):
     products = get_products_by_category(category)
     return jsonify(products)
+
+@app.route('/admin/payment_types')
+@login_required
+def admin_payment_types():
+    payment_types_ref = db.collection('payment_types')
+    payment_types = [doc.to_dict() for doc in payment_types_ref.stream()]
+    return render_template('admin_payment.html', payment_types=payment_types)
+
+@app.route('/add_payment_type', methods=['POST'])
+@login_required
+def add_payment_type():
+    data = request.json
+    payment_type_name = data.get('name')
+    if payment_type_name:
+        payment_type_ref = db.collection('payment_types').document(payment_type_name)
+        if payment_type_ref.get().exists:
+            return jsonify({'success': False, 'message': 'Payment type already exists'})
+        payment_type_ref.set({'name': payment_type_name})
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'message': 'Invalid payment type name'})
+
+@app.route('/edit_payment_type/<payment_type_id>', methods=['PUT'])
+@login_required
+def edit_payment_type(payment_type_id):
+    data = request.json
+    new_name = data.get('new_name')
+    if new_name:
+        payment_type_ref = db.collection('payment_types').document(payment_type_id)
+        if payment_type_ref.get().exists:
+            payment_type_data = payment_type_ref.get().to_dict()
+            new_payment_type_ref = db.collection('payment_types').document(new_name)
+            new_payment_type_ref.set({
+                'name': new_name,
+                **payment_type_data
+            })
+            payment_type_ref.delete()
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': 'Payment type not found'})
+    return jsonify({'success': False, 'message': 'Invalid payment type name'})
+
+@app.route('/delete_payment_type/<payment_type_id>', methods=['DELETE'])
+@login_required
+def delete_payment_type(payment_type_id):
+    payment_type_ref = db.collection('payment_types').document(payment_type_id)
+    if payment_type_ref.get().exists:
+        payment_type_ref.delete()
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'message': 'Payment type not found'})
 
 @app.route('/payment')
 @login_required
