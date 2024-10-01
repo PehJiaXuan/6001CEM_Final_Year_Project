@@ -32,7 +32,7 @@ body {
     max-width: 400px;
 }
 
-label {
+.login-form-container label {
     display: block;
     margin-bottom: 8px;
     color: white;
@@ -211,3 +211,4 @@ label {
     border: none;
     cursor: pointer;
 }
+

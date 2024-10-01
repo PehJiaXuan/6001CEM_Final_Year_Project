@@ -4,7 +4,7 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, Length
 import pyrebase
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, auth, exceptions
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
 app = Flask(__name__)
@@ -32,7 +32,7 @@ config = {
     "measurementId": "G-ECPHRV2ZX9"
 }
 firebase = pyrebase.initialize_app(config)
-auth = firebase.auth()
+firebase_auth = firebase.auth()
 
 # Define User class
 class User(UserMixin):
@@ -56,7 +56,7 @@ class LoginForm(FlaskForm):
 
 @app.route('/')
 def index():
-    if 'user' in session:
+    if 'user' in session and 'email' in session:
         if session['email'] == 'jolynpeh03@gmail.com':
             return redirect(url_for('admin_home'))
         elif session['email'] == 'jolynpeh03@yahoo.com':
@@ -73,16 +73,22 @@ def login():
         email = form.email.data
         password = form.password.data
         try:
-            user = auth.sign_in_with_email_and_password(email, password)
+            # Pyrebase authentication instead of Firebase Admin SDK
+            user = firebase_auth.sign_in_with_email_and_password(email, password)
             session['user'] = user['localId']
             session['email'] = email
 
-            # Save user info to Firestore
-            db.collection('users').document(user['localId']).set({
-                'user_id': user['localId'],
-                'email': email
-            })
+            # Check if user already exists in Firestore
+            user_ref = db.collection('users').document(user['localId'])
+            user_doc = user_ref.get()
+            if not user_doc.exists:
+                # Save new user info to Firestore if not exists
+                user_ref.set({
+                    'user_id': user['localId'],
+                    'email': email
+                })
 
+            # Log the user in via Flask-Login
             user_obj = User(user_id=user['localId'], email=email)
             login_user(user_obj)
 
@@ -95,12 +101,14 @@ def login():
                 return redirect(url_for('owner_home'))
             else:
                 return redirect(url_for('staff_home'))
-        except:
-            flash('Invalid credentials')
+        except Exception as e:
+            flash('Login failed. Please check your email and password.', 'danger')
             return redirect(url_for('index'))
+
+    # Show form validation errors (if any)
     for field, errors in form.errors.items():
         for error in errors:
-            flash(f"Error in {field}: {error}")
+            flash(f"Error in {field}: {error}", 'danger')
     return redirect(url_for('index'))
 
 @app.route('/logout')
@@ -115,6 +123,16 @@ def logout():
 def admin_home():
     return render_template('admin_homepage.html')
 
+@app.route('/owner')
+@login_required
+def owner_home():
+    return render_template('owner_homepage.html')
+
+@app.route('/staff')
+@login_required
+def staff_home():
+    return render_template('staff_homepage.html')
+    
 def get_all_categories():
     categories_ref = db.collection('categories')
     categories = [doc.id for doc in categories_ref.stream()]
@@ -349,13 +367,20 @@ def get_products(category):
     products = get_products_by_category(category)
     return jsonify(products)
 
+# Function to get all payment types
+def get_all_payment_types():
+    payment_types_ref = db.collection('payment_types')
+    payment_types = [doc.id for doc in payment_types_ref.stream()]
+    return payment_types
+
+# Route to display the payment types management page
 @app.route('/admin/payment_types')
 @login_required
 def admin_payment_types():
-    payment_types_ref = db.collection('payment_types')
-    payment_types = [doc.to_dict() for doc in payment_types_ref.stream()]
+    payment_types = get_all_payment_types()
     return render_template('admin_payment.html', payment_types=payment_types)
 
+# Route to add a new payment type
 @app.route('/add_payment_type', methods=['POST'])
 @login_required
 def add_payment_type():
@@ -369,6 +394,7 @@ def add_payment_type():
         return jsonify({'success': True})
     return jsonify({'success': False, 'message': 'Invalid payment type name'})
 
+# Route to edit an existing payment type
 @app.route('/edit_payment_type/<payment_type_id>', methods=['PUT'])
 @login_required
 def edit_payment_type(payment_type_id):
@@ -377,37 +403,261 @@ def edit_payment_type(payment_type_id):
     if new_name:
         payment_type_ref = db.collection('payment_types').document(payment_type_id)
         if payment_type_ref.get().exists:
+            # Get the current payment type data
             payment_type_data = payment_type_ref.get().to_dict()
+
+            # Create a new document with the updated name and the same data
             new_payment_type_ref = db.collection('payment_types').document(new_name)
             new_payment_type_ref.set({
-                'name': new_name,
-                **payment_type_data
+                'name': new_name,  # Ensure the name field inside the document is updated
+                **payment_type_data   # Preserve any other data in the document
             })
+
+            # Delete the old payment type document
             payment_type_ref.delete()
+
             return jsonify({'success': True})
         return jsonify({'success': False, 'message': 'Payment type not found'})
     return jsonify({'success': False, 'message': 'Invalid payment type name'})
 
+# Route to delete an existing payment type
 @app.route('/delete_payment_type/<payment_type_id>', methods=['DELETE'])
 @login_required
 def delete_payment_type(payment_type_id):
     payment_type_ref = db.collection('payment_types').document(payment_type_id)
-    if payment_type_ref.get().exists:
-        payment_type_ref.delete()
-        return jsonify({'success': True})
-    return jsonify({'success': False, 'message': 'Payment type not found'})
+    payment_type_ref.delete()
+    return jsonify({'success': True})
+
+@app.route('/store_order_items', methods=['POST'])
+@login_required
+def store_order_items():
+    # Retrieve the order items and total amount from the AJAX request
+    data = request.get_json()
+    order_items = data.get('order_items', [])
+    total_amount = data.get('total_amount', 0)
+
+    # Store order items and total amount in the session
+    if order_items and total_amount:
+        session['order_items'] = order_items
+        session['total_amount'] = total_amount
+        session.modified = True  # Mark the session as modified
+        return jsonify(success=True)
+    else:
+        return jsonify(success=False)
+
+
 
 @app.route('/payment')
 @login_required
 def payment():
+    # Ensure the user is logged in
     if 'user' not in session:
         return redirect(url_for('index'))
-    return render_template('payment.html')
+
+    # Fetch payment types from the database
+    payment_types = []
+    payment_types_ref = db.collection('payment_types')  # Assuming 'payment_types' is the collection name
+    docs = payment_types_ref.stream()
+
+    for doc in docs:
+        payment_types.append(doc.to_dict().get('name'))  # Assuming 'name' is the field for payment type name
+
+    # Get the total amount and order items from the session
+    total_amount = session.get('total_amount', 0)
+    order_items = session.get('order_items', [])
+
+    # Ensure we have order items and a total amount before proceeding to payment
+    if not order_items or not total_amount:
+        flash("No order items found. Please add items to the order.", 'danger')
+        return redirect(url_for('menu'))  # Redirect back to the menu if no items are present
+
+    return render_template('admin_payment_selection.html', payment_types=payment_types, total_amount=total_amount, order_items=order_items)
+
+
+
 
 @app.route('/payment_success')
 @login_required
 def payment_success():
-    return render_template('payment_success.html')
+    # Check for session data
+    order_items = session.get('order_items', [])
+    total_amount = session.get('total_amount', 0)
+    
+    # If there are no items or amount, redirect to the menu
+    if not order_items or not total_amount:
+        flash("No order items found. Please add items to the order.", 'danger')
+        return redirect(url_for('menu'))
+    
+    # Assuming successful payment processing has occurred, clear the session
+    session.pop('order_items', None)
+    session.pop('total_amount', None)
+    
+    # Render the payment success page
+    return render_template('payment_success.html', total_amount=total_amount)
+
+
+@app.route('/process_payment', methods=['POST'])
+@login_required
+def process_payment():
+    data = request.get_json()
+    payment_type = data.get('payment_type')
+    total_amount = data.get('total_amount')
+    order_items = data.get('order_items')
+    
+    # Create a Firestore client
+    db = firestore.client()
+    
+    # Prepare transaction data
+    transaction_data = {
+        'payment_type': payment_type,
+        'total_amount': float(total_amount),
+        'order_items': order_items,
+        'user_id': current_user.id,  # Assuming user is logged in and you have access to user id
+        'timestamp': firestore.SERVER_TIMESTAMP
+    }
+
+    # Store the transaction data in Firestore under the 'transactions' collection
+    transaction_ref = db.collection('transactions').document()
+    transaction_ref.set(transaction_data)
+    
+    # Return success response
+    return jsonify({'status': 'success'}), 200
+
+
+@app.route('/admin/admin_staff_management')
+def admin_staff_management():
+    # Retrieve all staff from Firestore
+    staff_list = []
+    staff_ref = db.collection('staff')
+    docs = staff_ref.stream()
+    for doc in docs:
+        staff_data = doc.to_dict()
+        staff_data['id'] = doc.id  # Add document ID to the staff data for edit/delete operations
+        staff_list.append(staff_data)
+
+    return render_template('admin_staff_management.html', staff_list=staff_list)
+
+
+# Add Staff Route
+@app.route('/admin/add_staff', methods=['POST'])
+def add_staff():
+    data = request.get_json()
+
+    # Check if the ID number already exists in the database
+    id_number = data.get('id_number')
+    staff_list = db.collection('staff').where('id_number', '==', id_number).get()
+
+    if staff_list:
+        return jsonify({'status': 'error', 'message': 'ID number already exists.'}), 400
+
+    # Get the last added staff's ID to generate the new staff ID
+    last_staff = db.collection('staff').order_by('staff_id', direction='DESCENDING').limit(1).get()
+
+    if last_staff:
+        last_staff_id = last_staff[0].to_dict().get('staff_id', 999)
+    else:
+        last_staff_id = 999  # Start from 1000 if no staff exist yet
+
+    new_staff_id = last_staff_id + 1
+
+    # Use the new_staff_id as the document name in Firestore
+    new_staff_doc_name = str(new_staff_id)
+
+    new_staff = {
+        'staff_id': new_staff_id,
+        'name': data.get('name'),
+        'email': data.get('email'),
+        'id_number': data.get('id_number'),
+        'address': data.get('address'),
+        'mobile': data.get('mobile'),
+        'job_position': data.get('job_position')
+    }
+
+    # Store staff data using the staff_id as the document name
+    db.collection('staff').document(new_staff_doc_name).set(new_staff)
+
+    # Add staff to Firebase Authentication
+    try:
+        user = auth.create_user(
+            uid=str(new_staff_id),  # Set staff_id as the Firebase user ID
+            email=data.get('email'),
+            password=data.get('id_number')
+        )
+        return jsonify({'status': 'success', 'auth_user_id': user.uid}), 200
+    except exceptions.FirebaseError as e:
+        return jsonify({'status': 'error', 'message': f'Error creating user: {str(e)}'}), 500
+
+
+
+# Edit Staff Route (Use PUT to update staff details)
+@app.route('/admin/edit_staff/<staff_id>', methods=['PUT'])
+def edit_staff(staff_id):
+    data = request.json
+    
+    # Ensure required fields are present
+    if not staff_id:
+        return jsonify({'status': 'error', 'message': 'Staff ID is required.'}), 400
+
+    # Fetch the staff document using the Firestore document ID
+    staff_ref = db.collection('staff').document(staff_id)
+    staff_doc = staff_ref.get()
+
+    if not staff_doc.exists:
+        return jsonify({'status': 'error', 'message': 'Staff not found.'}), 404
+
+    # Update staff data in Firestore
+    updated_staff = {
+        'name': data.get('name'),
+        'email': data.get('email'),
+        'id_number': data.get('id_number'),
+        'address': data.get('address'),
+        'mobile': data.get('mobile'),
+        'job_position': data.get('job_position')
+    }
+
+    # Update the document with new data
+    staff_ref.update(updated_staff)
+
+    return jsonify({'status': 'success'}), 200
+
+
+# Delete Staff Route (Use DELETE to remove staff details)
+@app.route('/admin/delete_staff/<staff_id>', methods=['DELETE'])
+def delete_staff(staff_id):
+    # Ensure staff_id is provided
+    if not staff_id:
+        return jsonify({'status': 'error', 'message': 'Staff ID is required.'}), 400
+
+    # Fetch the staff document using the Firestore document ID
+    staff_ref = db.collection('staff').document(staff_id)
+    staff_doc = staff_ref.get()
+
+    if not staff_doc.exists:
+        return jsonify({'status': 'error', 'message': 'Staff not found.'}), 404
+
+    # Retrieve staff email for Firebase Authentication deletion
+    staff_email = staff_doc.to_dict().get('email')
+
+    # Try to delete the staff from Firebase Authentication
+    try:
+        # Fetch the user by email
+        user = auth.get_user_by_email(staff_email)
+
+        # Delete the user from Firebase Authentication
+        auth.delete_user(user.uid)
+        print(f"Successfully deleted user from Firebase Authentication: {user.uid}")
+
+    except auth.UserNotFoundError:
+        return jsonify({'status': 'error', 'message': 'Staff not found in Firebase Authentication.'}), 404
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': f'Error deleting user from Firebase: {str(e)}'}), 500
+
+    # Delete the document from Firestore
+    staff_ref.delete()
+
+    return jsonify({'status': 'success', 'message': 'Staff successfully deleted.'}), 200
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,41 @@
+/* General styles for the payment success page */
+.container {
+    margin-top: 50px;
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+/* Payment success box styles */
+.payment-success-box {
+    border: 2px solid #007bff; /* Blue border */
+    border-radius: 8px; /* Rounded corners */
+    padding: 30px; /* Space inside the box */
+    text-align: center; /* Center text */
+    background-color: #f8f9fa; /* Light background color */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Style for the button group */
+.button-group {
+    margin-top: 20px;
+}
+
+/* Style for the buttons */
+.button-group .btn {
+    display: inline-block; /* Allow width adjustment */
+    width: 200px; /* Set a fixed width for the buttons */
+    margin: 10px; /* Space between buttons */
+    padding: 15px; /* Button padding */
+    font-size: 16px; /* Button font size */
+    text-align: center; /* Center text */
+    color: #fff; /* White text */
+    background-color: #007bff; /* Blue background */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Rounded corners */
+    text-decoration: none; /* Remove underline */
+}
+
+.button-group .btn:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}

@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="container">
+<div class="menu-container">
     <h1>Menu</h1>
 
     <!-- Two-column layout -->
@@ -22,11 +26,12 @@
                 {% for category, products in products_by_category.items() %}
                 <div class="menu-category" data-category="{{ category }}">
                     <h2>{{ category }}</h2>
-                    <div class="category-products">
+                    <div class="menu-category-products">
                         {% for product in products %}
-                        <div class="menu-item" data-id="{{ product.id }}" data-name="{{ product.name }}" data-price="{{ product.price }}">
+                        <div class="menu-item" data-id="{{ product.id }}" data-name="{{ product.name }}"
+                            data-price="{{ product.price }}">
                             <p><strong>{{ product.name }}</strong></p>
-                            <p>Price: RM{{ product.price }}</p>
+                            <p>Price: RM<span class="product-price">{{ product.price }}</span></p>
                             <button class="btn btn-primary add-to-order">Add to Order</button>
                         </div>
                         {% endfor %}
@@ -45,12 +50,12 @@
         <div class="col-md-3">
             <div class="order-list" style="border: 1px solid #ddd; padding: 15px; border-radius: 5px;">
                 <h2>Order List</h2>
-                
+
                 <!-- Customer Phone Number and Add Button -->
                 <div class="customer-info mb-3">
                     <div id="customer-name-section">
                         <label>Customer Name: <span id="customer-name"></span></label>
-                    </div>                    
+                    </div>
                     <label for="customer-phone">Customer Phone Number:</label>
                     <div class="input-group">
                         <input type="text" id="customer-phone" class="form-control" placeholder="Enter phone number">
@@ -59,12 +64,23 @@
                     <!-- Error message for phone number -->
                     <div id="phone-error-message" class="alert alert-danger" style="display:none;"></div>
                 </div>
-                
+
                 <ul id="order-items">
-                    <!-- Order items will be dynamically added here -->
+                    {% for item in order_items %}
+                    <li data-id="{{ item['id'] }}" class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-secondary btn-sm decrease-quantity">-</button>
+                            <span class="mx-2">{{ item['quantity'] }}</span>
+                            <button class="btn btn-secondary btn-sm increase-quantity">+</button>
+                            <span class="mx-3">{{ item['name'] }}</span>
+                        </div>
+                        <span>RM{{ item['total_price'] }}</span>
+                        <button class="btn btn-danger btn-sm delete-item">Delete</button>
+                    </li>
+                    {% endfor %}
                 </ul>
                 <div class="order-summary">
-                    <p><strong>Total:</strong> RM<span id="total-price">0.00</span></p>
+                    <p><strong>Total:</strong> RM<span id="total-price">{{ total_amount }}</span></p>
                     <button id="payment-btn" class="btn btn-success" style="display:none;">Proceed to Payment</button>
                 </div>
             </div>
@@ -73,7 +89,8 @@
 </div>
 
 <!-- Customer Form Modal -->
-<div class="modal fade" id="customerFormModal" tabindex="-1" aria-labelledby="customerFormModalLabel" aria-hidden="true">
+<div class="modal fade" id="customerFormModal" tabindex="-1" aria-labelledby="customerFormModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -103,9 +120,9 @@
 </div>
 
 <script>
-    $(document).ready(function(){
+    $(document).ready(function () {
         // Filter products by category
-        $('#categoryFilter').change(function(){
+        $('#categoryFilter').change(function () {
             var selectedCategory = $(this).val();
             if (selectedCategory === 'all') {
                 $('.menu-category').show();
@@ -119,7 +136,7 @@
         let orderItems = {};
         let totalPrice = 0;
 
-        $('.add-to-order').click(function(){
+        $('.add-to-order').click(function () {
             let productId = $(this).closest('.menu-item').data('id');
             let productName = $(this).closest('.menu-item').data('name');
             let productPrice = parseFloat($(this).closest('.menu-item').data('price'));
@@ -144,7 +161,7 @@
             $('#order-items').empty();
             totalPrice = 0;
 
-            $.each(orderItems, function(productId, item){
+            $.each(orderItems, function (productId, item) {
                 $('#order-items').append(
                     `<li data-id="${productId}" class="d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
@@ -153,7 +170,7 @@
                             <button class="btn btn-secondary btn-sm increase-quantity">+</button>
                             <span class="mx-3">${item.name}</span>
                         </div>
-                        <span>$${item.totalPrice.toFixed(2)}</span>
+                        <span>RM${item.totalPrice.toFixed(2)}</span>
                         <button class="btn btn-danger btn-sm delete-item">Delete</button>
                     </li>`
                 );
@@ -163,14 +180,14 @@
             $('#total-price').text(totalPrice.toFixed(2));
 
             // Add increase/decrease functionality
-            $('.increase-quantity').click(function(){
+            $('.increase-quantity').click(function () {
                 let productId = $(this).closest('li').data('id');
                 orderItems[productId].quantity += 1;
                 orderItems[productId].totalPrice = orderItems[productId].quantity * orderItems[productId].price;
                 updateOrderList();
             });
 
-            $('.decrease-quantity').click(function(){
+            $('.decrease-quantity').click(function () {
                 let productId = $(this).closest('li').data('id');
                 if (orderItems[productId].quantity > 1) {
                     orderItems[productId].quantity -= 1;
@@ -182,7 +199,7 @@
             });
 
             // Add delete functionality
-            $('.delete-item').click(function(){
+            $('.delete-item').click(function () {
                 let productId = $(this).closest('li').data('id');
                 delete orderItems[productId];
                 updateOrderList();
@@ -196,14 +213,45 @@
             }
         }
 
-        // Proceed to payment (redirect to payment page)
-        $('#payment-btn').click(function(){
-            // Perform any necessary actions before proceeding to payment
-            window.location.href = "{{ url_for('payment') }}";
+        $('#payment-btn').click(function () {
+            let totalAmount = $('#total-price').text();
+
+            // Collect order items to store in the session
+            let orderItemsList = [];
+            $('#order-items li').each(function () {
+                let productId = $(this).data('id');
+
+                // Use the stored orderItems object to get correct data
+                let item = orderItems[productId];
+
+                orderItemsList.push({
+                    name: item.name,
+                    quantity: item.quantity,
+                    total_price: item.totalPrice.toFixed(2) // Correctly fetch the total price
+                });
+            });
+
+            // Store the order items and total amount in the session via AJAX
+            $.ajax({
+                url: "{{ url_for('store_order_items') }}",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ order_items: orderItemsList, total_amount: totalAmount }),
+                success: function (response) {
+                    if (response.success) {
+                        // Redirect to the payment selection page
+                        window.location.href = "{{ url_for('payment') }}";
+                    } else {
+                        alert("Failed to proceed to payment. Please try again.");
+                    }
+                }
+            });
         });
 
+
+
         // Check if the customer phone number exists in the database
-        $('#customer-phone').on('input', function() {
+        $('#customer-phone').on('input', function () {
             let phoneNumber = $(this).val().trim();
 
             // Clear the customer name and show the Add button by default
@@ -217,7 +265,7 @@
                     method: "POST",
                     contentType: "application/json",
                     data: JSON.stringify({ phone: phoneNumber }),
-                    success: function(response) {
+                    success: function (response) {
                         if (response.exists) {
                             $('#customer-name-section').show();
                             $('#customer-name').text(response.customer.name);
@@ -231,7 +279,7 @@
         });
 
         // Show the customer form modal when Add button is clicked
-        $('#add-customer-btn').click(function() {
+        $('#add-customer-btn').click(function () {
             let phoneNumber = $('#customer-phone').val().trim();
 
             // Check if the phone number field is empty
@@ -244,7 +292,7 @@
         });
 
         // Handle form submission
-        $('#customerForm').submit(function(event) {
+        $('#customerForm').submit(function (event) {
             event.preventDefault();
             let phoneNumber = $('#customer-phone').val().trim();
             let customerName = $('#customer-name-input').val().trim();
@@ -256,7 +304,7 @@
                     method: "POST",
                     contentType: "application/json",
                     data: JSON.stringify({ name: customerName, phone: phoneNumber, gender: customerGender }),
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             $('#add-customer-btn').hide();
                             alert("Customer added successfully!");
