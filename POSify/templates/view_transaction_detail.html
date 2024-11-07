@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/view_transaction_detail.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Transaction Details</h1>
+    <div class="transaction-details">
+        <p><strong>Order ID:</strong> {{ transaction.order_id }}</p>
+        <p><strong>Timestamp:</strong> {{ transaction.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+        <p><strong>Status:</strong> {{ transaction.status }}</p>
+
+        <div class="purchased_items">
+            {% if transaction.order_items %}
+            <h2>Purchased Items</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Price (RM)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in transaction.order_items %}
+                    <tr>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.quantity }}</td>
+                        <td>RM{{ "%.2f" | format(product.price | float) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+        <p><strong>Total Quantity:</strong> {{ transaction.total_quantity }}</p>
+        <p><strong>Total Amount:</strong> RM{{ "%.2f" | format(transaction.total_amount) }}</p>
+        <p><strong>Payment Type:</strong> {{ transaction.payment_type }}</p>
+
+        {% if transaction.status != 'Cancelled' %}
+        <div class="cancel-order">
+            <h3>Cancel Order</h3>
+            <form action="{{ url_for('cancel_order', order_id=transaction.order_id) }}" method="POST">
+                <label for="reason">Cancellation Reason:</label>
+                <input type="text" id="reason" name="reason" placeholder="Enter cancellation reason" required />
+                <button type="submit" class="btn">Submit Cancellation</button>
+            </form>
+        </div>
+        {% else %}
+        <p><strong>Cancellation Reason:</strong> {{ transaction.cancellation_reason }}</p>
+        <p><strong>Cancelled By:</strong> {{ transaction.cancelled_by }}</p>
+        {% endif %}
+    </div>
+
+    <a href="{{ url_for('view_transactions') }}" class="back-transaction">Back to Transactions</a>
+</div>
+{% endblock %}

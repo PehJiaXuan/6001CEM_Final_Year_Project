@@ -1,0 +1,107 @@
+/* Styles for Customer Management */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.form-inline .form-group {
+    margin-bottom: 15px;
+}
+
+input.form-control, select.form-control {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button.btn-primary {
+    background-color: #007bff;
+    border: none;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    padding: 15px;
+    text-align: left;
+    border: 1px solid #ccc;
+}
+
+.table th {
+    background-color: #f8f9fa;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+button.btn-warning {
+    background-color: #ffc107;
+    border: none;
+    padding: 10px;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button.btn-danger {
+    background-color: #dc3545;
+    border: none;
+    padding: 10px;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button.btn-warning:hover, button.btn-danger:hover {
+    opacity: 0.8;
+}
+
+.alert {
+    margin-top: 20px;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.modal .modal-header {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.modal .btn-primary {
+    background-color: #007bff;
+    border: none;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 5px;
+}
+
+.modal .btn-primary:hover {
+    background-color: #0056b3;
+}

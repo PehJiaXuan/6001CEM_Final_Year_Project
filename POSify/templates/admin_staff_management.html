@@ -15,15 +15,21 @@
             <input type="email" id="email" name="email" class="form-control mr-2" placeholder="Email" required>
         </div>
         <div class="form-group">
-            <input type="text" id="id_number" name="id_number" class="form-control mr-2" placeholder="ID Number"
-                required>
+            <input type="text" id="id_number" name="id_number" class="form-control mr-2" 
+                   placeholder="ID Number" required 
+                   pattern="^\d{12}$" 
+                   title="ID Number must be exactly 12 digits.">
         </div>
         <div class="form-group">
             <input type="text" id="address" name="address" class="form-control mr-2" placeholder="Address" required>
         </div>
         <div class="form-group">
-            <input type="text" id="mobile" name="mobile" class="form-control mr-2" placeholder="Mobile" required>
+            <input type="text" id="mobile" name="mobile" class="form-control mr-2" 
+                   placeholder="Mobile" required 
+                   pattern="^\+?[1-9]\d{1,14}$" 
+                   title="Please enter a valid phone number, e.g., +123456789 or 123456789">
         </div>
+        
         <div class="form-group">
             <input type="text" id="job_position" name="job_position" class="form-control mr-2"
                 placeholder="Job Position" required>
@@ -32,11 +38,13 @@
     </form>
 
     <div id="staff-error-message" class="alert alert-danger" style="display:none;"></div>
+    <div id="staff-success-message" class="alert alert-success" style="display:none;"></div>
+
 
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>Staff ID</th> <!-- Display Staff ID in the table -->
+                <th>Staff ID</th>
                 <th>Name</th>
                 <th>Email</th>
                 <th>ID Number</th>
@@ -69,7 +77,6 @@
     </table>
 </div>
 
-<!-- Edit Staff Modal -->
 <div class="modal fade" id="editStaffModal" tabindex="-1" role="dialog" aria-labelledby="editStaffModalLabel"
     aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -117,9 +124,8 @@
 
 <script>
     $(document).ready(function () {
-        // Add Staff
         $('#add-staff-form').submit(function (event) {
-            event.preventDefault(); // Prevent the default form submission
+            event.preventDefault();
 
             let staffData = {
                 name: $('#name').val(),
@@ -136,15 +142,19 @@
                 contentType: 'application/json',
                 data: JSON.stringify(staffData),
                 success: function () {
-                    location.reload(); // Reload the page to show the updated staff list
+                    $('#staff-success-message').text('Staff member has been successfully added.').show();
+                    $('#staff-error-message').hide();
+                    setTimeout(function () {
+                        $('#staff-success-message').hide();
+                        location.reload();
+                    }, 5000);
                 },
                 error: function (response) {
-                    $('#staff-error-message').text(response.responseJSON.message).show(); // Display error message
+                    $('#staff-error-message').text(response.responseJSON.message).show();
                 }
             });
         });
 
-        // Edit Staff
         $('.edit-btn').click(function () {
             let button = $(this);
             let staffData = {
@@ -178,15 +188,15 @@
                 job_position: $('#edit-job_position').val(),
             };
 
-            let staffId = $('#edit-staff-id').val(); // Get the staff ID
+            let staffId = $('#edit-staff-id').val();
 
             $.ajax({
-                type: 'PUT', // Change to PUT for updating
-                url: '/admin/edit_staff/' + staffId, // Include staff ID in the URL
+                type: 'PUT',
+                url: '/admin/edit_staff/' + staffId,
                 contentType: 'application/json',
                 data: JSON.stringify(staffData),
                 success: function () {
-                    location.reload(); // Reload the page to show the updated staff list
+                    location.reload();
                 },
                 error: function (response) {
                     $('#edit-staff-error-message').text(response.responseJSON.message).show();
@@ -199,11 +209,11 @@
                 let staffId = $(this).data('id');
 
                 $.ajax({
-                    type: 'DELETE', // Change to DELETE for removing
-                    url: '/admin/delete_staff/' + staffId, // Include staff ID in the URL
+                    type: 'DELETE',
+                    url: '/admin/delete_staff/' + staffId,
                     contentType: 'application/json',
                     success: function () {
-                        location.reload(); // Reload the page to show the updated staff list
+                        location.reload();
                     },
                     error: function (response) {
                         alert(response.responseJSON.message);
@@ -213,6 +223,4 @@
         });
     });
 </script>
-
-
 {% endblock %}

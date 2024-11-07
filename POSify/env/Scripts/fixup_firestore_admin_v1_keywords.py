@@ -1,6 +1,6 @@
-#!C:\Users\Jolyn Peh\Downloads\POS\env\Scripts\python.exe
+#!C:\Users\Jolyn Peh\Documents\GitHub\6001CEM_Final_Year_Project\POSify\env\Scripts\python.exe
 # -*- coding: utf-8 -*-
-# Copyright 2024 Google LLC
+# Copyright 2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,27 +45,16 @@ def partition(
 class firestore_adminCallTransformer(cst.CSTTransformer):
     CTRL_PARAMS: Tuple[str] = ('retry', 'timeout', 'metadata')
     METHOD_TO_PARAMS: Dict[str, Tuple[str]] = {
-        'create_backup_schedule': ('parent', 'backup_schedule', ),
-        'create_database': ('parent', 'database', 'database_id', ),
         'create_index': ('parent', 'index', ),
-        'delete_backup': ('name', ),
-        'delete_backup_schedule': ('name', ),
-        'delete_database': ('name', 'etag', ),
         'delete_index': ('name', ),
-        'export_documents': ('name', 'collection_ids', 'output_uri_prefix', 'namespace_ids', 'snapshot_time', ),
-        'get_backup': ('name', ),
-        'get_backup_schedule': ('name', ),
+        'export_documents': ('name', 'collection_ids', 'output_uri_prefix', ),
         'get_database': ('name', ),
         'get_field': ('name', ),
         'get_index': ('name', ),
-        'import_documents': ('name', 'collection_ids', 'input_uri_prefix', 'namespace_ids', ),
-        'list_backups': ('parent', ),
-        'list_backup_schedules': ('parent', ),
+        'import_documents': ('name', 'collection_ids', 'input_uri_prefix', ),
         'list_databases': ('parent', ),
         'list_fields': ('parent', 'filter', 'page_size', 'page_token', ),
         'list_indexes': ('parent', 'filter', 'page_size', 'page_token', ),
-        'restore_database': ('parent', 'database_id', 'backup', ),
-        'update_backup_schedule': ('backup_schedule', 'update_mask', ),
         'update_database': ('database', 'update_mask', ),
         'update_field': ('field', 'update_mask', ),
     }

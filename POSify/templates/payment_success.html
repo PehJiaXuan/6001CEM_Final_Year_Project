@@ -4,17 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Success - POSify</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/payment_success.css') }}"> <!-- Link to a new CSS file for custom styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/payment_success.css') }}">
 </head>
 <body>
-    <div class="container text-center"> <!-- Center the content -->
-        <div class="payment-success-box"> <!-- Box for border and centering -->
+    <div class="container text-center">
+        <div class="payment-success-box">
             <h1>Payment Successful!</h1>
-            <h2>Total Amount: RM<span id="total-amount">{{ total_amount }}</span></h2> <!-- Show total amount as header -->
-            <p>Your payment has been processed successfully. Thank you for your purchase!</p>
+            <h2>Total Amount: RM<span id="total-amount">{{ total_amount }}</span></h2>
+            <p>Payment Successfully. Thank you!</p>
             
-            <!-- Buttons Section -->
             <div class="button-group">
                 <a href="javascript:void(0);" class="btn btn-print" id="print-receipt">Print Receipt</a>
                 <a href="{{ url_for('menu') }}" class="btn btn-back">Back to Menu</a>
@@ -23,10 +21,8 @@
     </div>
 
     <script>
-        // Print receipt functionality
         document.getElementById('print-receipt').addEventListener('click', function() {
-            // Logic to print the receipt (you may need to implement receipt generation)
-            window.print(); // Simple print dialog, adjust as necessary
+            window.print();
         });
     </script>
 </body>

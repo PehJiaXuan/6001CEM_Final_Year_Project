@@ -7,8 +7,6 @@
 {% block content %}
 <div class="menu-container">
     <h1>Menu</h1>
-
-    <!-- Two-column layout -->
     <div class="row">
         <!-- Left Column: Menu Items -->
         <div class="col-md-8">
@@ -29,10 +27,15 @@
                     <div class="menu-category-products">
                         {% for product in products %}
                         <div class="menu-item" data-id="{{ product.id }}" data-name="{{ product.name }}"
-                            data-price="{{ product.price }}">
+                            data-price="{{ product.price }}" data-category="{{ category }}" data-quantity="{{ product.quantity}}">
                             <p><strong>{{ product.name }}</strong></p>
                             <p>Price: RM<span class="product-price">{{ product.price }}</span></p>
+                            <p>Quantity: {{ product.quantity }}</p>
+                            {% if product.quantity == 0 %}
+                            <p style="color: red;">Out of Stock</p>
+                            {% else %}
                             <button class="btn btn-primary add-to-order">Add to Order</button>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -41,7 +44,6 @@
             </div>
         </div>
 
-        <!-- Divider Column -->
         <div class="col-md-1 d-none d-md-block">
             <div class="divider"></div>
         </div>
@@ -49,20 +51,22 @@
         <!-- Right Column: Order List -->
         <div class="col-md-3">
             <div class="order-list" style="border: 1px solid #ddd; padding: 15px; border-radius: 5px;">
-                <h2>Order List</h2>
-
-                <!-- Customer Phone Number and Add Button -->
-                <div class="customer-info mb-3">
-                    <div id="customer-name-section">
-                        <label>Customer Name: <span id="customer-name"></span></label>
-                    </div>
+                <div class="header1">
+                    <h2>Order List</h2>
+                </div>
+                <div id="customer-name-section" style="display:none;">
+                    <p><strong>Customer Name:</strong> <span id="customer-name"></span></p>
+                </div>
+                <div id="customer-phone1-section" style="display:none;">
+                    <p><strong>User ID:</strong> <span id="user-id"></span></p>
+                </div>
+                <div id="customer-phone-section">
                     <label for="customer-phone">Customer Phone Number:</label>
-                    <div class="input-group">
-                        <input type="text" id="customer-phone" class="form-control" placeholder="Enter phone number">
-                        <button id="add-customer-btn" class="btn btn-primary">Add</button>
-                    </div>
-                    <!-- Error message for phone number -->
-                    <div id="phone-error-message" class="alert alert-danger" style="display:none;"></div>
+                    <input type="text" id="customer-phone" placeholder="Enter phone number" />
+                    <button id="check-customer">Check Number</button>
+                    <p id="customer-error-message" style="color: red; display: none;">Customer is not registered yet.
+                    </p>
+
                 </div>
 
                 <ul id="order-items">
@@ -79,6 +83,7 @@
                     </li>
                     {% endfor %}
                 </ul>
+
                 <div class="order-summary">
                     <p><strong>Total:</strong> RM<span id="total-price">{{ total_amount }}</span></p>
                     <button id="payment-btn" class="btn btn-success" style="display:none;">Proceed to Payment</button>
@@ -87,38 +92,6 @@
         </div>
     </div>
 </div>
-
-<!-- Customer Form Modal -->
-<div class="modal fade" id="customerFormModal" tabindex="-1" aria-labelledby="customerFormModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="customerFormModalLabel">Add New Customer</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="customerForm">
-                    <div class="mb-3">
-                        <label for="customer-name-input" class="form-label">Customer Name</label>
-                        <input type="text" class="form-control" id="customer-name-input" required>
-                    </div>
-                    <div class="mb-4">
-                        <label for="customer-gender-input" class="form-label">Gender</label>
-                        <select class="form-select" id="customer-gender-input" required>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Add Customer</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
     $(document).ready(function () {
         // Filter products by category
@@ -137,10 +110,17 @@
         let totalPrice = 0;
 
         $('.add-to-order').click(function () {
-            let productId = $(this).closest('.menu-item').data('id');
-            let productName = $(this).closest('.menu-item').data('name');
-            let productPrice = parseFloat($(this).closest('.menu-item').data('price'));
+            let $menuItem = $(this).closest('.menu-item');
+            let productId = $menuItem.data('id');
+            let productName = $menuItem.data('name');
+            let productPrice = parseFloat($menuItem.data('price'));
+            let productCategory = $menuItem.data('category');
+            let productQuantity = $menuItem.data('quantity');
 
+            addItemToOrder(productId, productName, productPrice, productCategory);
+        });
+
+        function addItemToOrder(productId, productName, productPrice, productCategory) {
             if (orderItems[productId]) {
                 orderItems[productId].quantity += 1;
                 orderItems[productId].totalPrice += productPrice;
@@ -148,15 +128,15 @@
                 orderItems[productId] = {
                     name: productName,
                     price: productPrice,
+                    category: productCategory,
                     quantity: 1,
                     totalPrice: productPrice
                 };
             }
 
             updateOrderList();
-        });
+        }
 
-        // Update order list and add increase/decrease buttons
         function updateOrderList() {
             $('#order-items').empty();
             totalPrice = 0;
@@ -179,9 +159,9 @@
 
             $('#total-price').text(totalPrice.toFixed(2));
 
-            // Add increase/decrease functionality
             $('.increase-quantity').click(function () {
                 let productId = $(this).closest('li').data('id');
+    
                 orderItems[productId].quantity += 1;
                 orderItems[productId].totalPrice = orderItems[productId].quantity * orderItems[productId].price;
                 updateOrderList();
@@ -198,14 +178,12 @@
                 updateOrderList();
             });
 
-            // Add delete functionality
             $('.delete-item').click(function () {
                 let productId = $(this).closest('li').data('id');
                 delete orderItems[productId];
                 updateOrderList();
             });
 
-            // Hide the payment button if there are no items in the order
             if ($.isEmptyObject(orderItems)) {
                 $('#payment-btn').hide();
             } else {
@@ -215,31 +193,34 @@
 
         $('#payment-btn').click(function () {
             let totalAmount = $('#total-price').text();
-
-            // Collect order items to store in the session
+            let customerID = $('#user-id').text();
             let orderItemsList = [];
+
             $('#order-items li').each(function () {
                 let productId = $(this).data('id');
-
-                // Use the stored orderItems object to get correct data
                 let item = orderItems[productId];
 
                 orderItemsList.push({
+                    id: productId,
                     name: item.name,
+                    category: item.category,
                     quantity: item.quantity,
-                    total_price: item.totalPrice.toFixed(2) // Correctly fetch the total price
+                    price: item.price.toFixed(2),
+                    total_price: item.totalPrice.toFixed(2)
                 });
             });
 
-            // Store the order items and total amount in the session via AJAX
             $.ajax({
                 url: "{{ url_for('store_order_items') }}",
                 method: "POST",
                 contentType: "application/json",
-                data: JSON.stringify({ order_items: orderItemsList, total_amount: totalAmount }),
+                data: JSON.stringify({
+                    order_items: orderItemsList,
+                    total_amount: totalAmount,
+                    customer_id: customerID
+                }),
                 success: function (response) {
                     if (response.success) {
-                        // Redirect to the payment selection page
                         window.location.href = "{{ url_for('payment') }}";
                     } else {
                         alert("Failed to proceed to payment. Please try again.");
@@ -248,76 +229,59 @@
             });
         });
 
+        const customerPhoneInput = document.getElementById('customer-phone');
+        const checkCustomerBtn = document.getElementById('check-customer');
+        const customerErrorMessage = document.getElementById('customer-error-message');
+        const proceedToPaymentBtn = document.getElementById('payment-btn');
 
+        function checkCustomerPhoneNumber() {
+            let phoneNumber = customerPhoneInput.value.trim();
+            phoneNumber = phoneNumber.replace(/\D/g, '');
 
-        // Check if the customer phone number exists in the database
-        $('#customer-phone').on('input', function () {
-            let phoneNumber = $(this).val().trim();
+            if (phoneNumber === '') {
+                customerErrorMessage.textContent = 'Please enter a valid phone number.';
+                customerErrorMessage.style.display = 'block';
+                proceedToPaymentBtn.style.display = 'none';
+                document.getElementById('customer-name-section').style.display = 'none';
+                document.getElementById('customer-phone1-section').style.display = 'none';
+                return;
+            }
+            
+            $.ajax({
+                url: "{{ url_for('check_customer_phone') }}",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ phone_number: phoneNumber }),
+                success: function (response) {
+                    console.log(response);
+                    if (response.success) {
+                        customerErrorMessage.style.display = 'none';
+                        proceedToPaymentBtn.style.display = 'block';
 
-            // Clear the customer name and show the Add button by default
-            $('#customer-name').text('');
-            $('#add-customer-btn').show();
-            $('#phone-error-message').hide(); // Hide the error message when the admin starts typing
+                        $('#customer-name').text(response.customer.customer_name);
+                        $('#user-id').text(response.customer.customer_id);
 
-            if (phoneNumber.length > 0) {
-                $.ajax({
-                    url: "{{ url_for('check_customer_phone') }}",
-                    method: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify({ phone: phoneNumber }),
-                    success: function (response) {
-                        if (response.exists) {
-                            $('#customer-name-section').show();
-                            $('#customer-name').text(response.customer.name);
-                            $('#add-customer-btn').hide();
-                        } else {
-                            $('#add-customer-btn').show();
-                        }
-                    }
-                });
+                        document.getElementById('customer-name-section').style.display = 'block';
+                        document.getElementById('customer-phone1-section').style.display = 'block';
+                    } else {
+                    customerErrorMessage.textContent = 'Customer is not registered yet.';
+                    customerErrorMessage.style.display = 'block';
+                    proceedToPaymentBtn.style.display = 'none';
+                    document.getElementById('customer-name-section').style.display = 'none';
+                    document.getElementById('customer-phone1-section').style.display = 'none';
+                }
+            },
+            error: function () {
+                customerErrorMessage.textContent = 'Customer not found.';
+                customerErrorMessage.style.display = 'block';
+                proceedToPaymentBtn.style.display = 'none';
+                document.getElementById('customer-name-section').style.display = 'none';
+                document.getElementById('customer-phone1-section').style.display = 'none';
             }
         });
+    }
 
-        // Show the customer form modal when Add button is clicked
-        $('#add-customer-btn').click(function () {
-            let phoneNumber = $('#customer-phone').val().trim();
-
-            // Check if the phone number field is empty
-            if (!phoneNumber) {
-                $('#phone-error-message').text('Please enter a phone number.').show();
-            } else {
-                $('#phone-error-message').hide(); // Hide the error message if the phone number is valid
-                $('#customerFormModal').modal('show');
-            }
-        });
-
-        // Handle form submission
-        $('#customerForm').submit(function (event) {
-            event.preventDefault();
-            let phoneNumber = $('#customer-phone').val().trim();
-            let customerName = $('#customer-name-input').val().trim();
-            let customerGender = $('#customer-gender-input').val();
-
-            if (customerName && customerGender) {
-                $.ajax({
-                    url: "{{ url_for('add_customer') }}",
-                    method: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify({ name: customerName, phone: phoneNumber, gender: customerGender }),
-                    success: function (response) {
-                        if (response.success) {
-                            $('#add-customer-btn').hide();
-                            alert("Customer added successfully!");
-                            $('#customer-name').text(customerName);
-                            $('#customerFormModal').modal('hide');
-                        } else {
-                            alert("Failed to add customer. Please try again.");
-                        }
-                    }
-                });
-            }
-        });
-    });
+    checkCustomerBtn.addEventListener('click', checkCustomerPhoneNumber);
+});
 </script>
-
 {% endblock %}

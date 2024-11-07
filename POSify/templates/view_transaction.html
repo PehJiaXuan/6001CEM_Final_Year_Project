@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/view_transaction.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Transactions</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Total Amount</th>
+                <th>Payment Type</th>
+                <th>Timestamp</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="transaction-table-body">
+        </tbody>
+    </table>
+</div>
+
+<script>
+    async function fetchTransactions() {
+        const response = await fetch('/get_transactions');
+        const transactions = await response.json();
+
+        const tableBody = document.getElementById('transaction-table-body');
+        tableBody.innerHTML = '';
+
+        transactions.forEach(transaction => {
+            const row = document.createElement('tr');
+            
+            const timestamp = transaction.timestamp 
+                ? new Date(transaction.timestamp).toLocaleString() 
+                : 'N/A';
+
+            row.innerHTML = `
+                <td><a href="/view_transaction_detail/${transaction.order_id}">RM${transaction.total_amount.toFixed(2)}</a></td>
+                <td>${transaction.payment_type}</td>
+                <td>${timestamp}</td>
+                <td>${transaction.status}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchTransactions);
+</script>
+{% endblock %}

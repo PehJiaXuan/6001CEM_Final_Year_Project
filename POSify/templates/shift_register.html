@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/shift_register.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="shift-register-container">
+    <h1>Shift Register</h1>
+
+    {% if not shift_opened %}
+    <!-- Show the form to enter the opening amount if the shift hasn't opened yet -->
+    <div class="shift-form">
+        <h2>Open Shift</h2>
+        <form action="{{ url_for('open_shift') }}" method="POST">
+            <label for="open_amount">Opening Amount (RM)</label>
+            <input type="number" id="open_amount" name="open_amount" step="0.01" min="0" required>
+            <button type="submit" class="submit-button">Submit Opening Amount</button>
+        </form>
+    </div>
+    {% else %}
+    <!-- Show the opening amount if the shift is opened -->
+    <div class="shift-info">
+        <h3>Opening Shift</h3>
+        <p><strong>Shift Opened:</strong> RM{{ "%.2f"|format(shift_data.open_amount) }}</p>
+        <p><strong>Time Opened:</strong> {{ shift_data.open_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+    </div>
+    {% endif %}
+
+    {% if shift_opened and not shift_closed %}
+    <!-- Show the form to enter the closing amount if the shift is open but not yet closed -->
+    <div class="shift-form">
+        <h2>Close Shift</h2>
+        <form action="{{ url_for('close_shift') }}" method="POST">
+            <label for="close_amount">Closing Amount (RM)</label>
+            <input type="number" id="close_amount" name="close_amount" step="0.01" min="0" required>
+            <button type="submit" class="submit-button">Submit Closing Amount</button>
+        </form>
+    </div>
+
+    
+    {% endif %}
+
+    {% if shift_closed %}
+    <!-- Show the closing amount if the shift is closed -->
+    <div class="shift-info">
+        <h3>Closing Shift</h3>
+        <p><strong>Shift Closed:</strong> RM{{ "%.2f"|format(shift_data.close_amount) }}</p>
+        <p><strong>Time Closed:</strong> {{ shift_data.close_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+        <h4>Shift closed! </h4>
+        <h5>Please open shift to start the business!</h5>
+    </div>
+    {% endif %}
+    <a href="{{ url_for('menu') }}"  class="back-link {% if not shift_opened or shift_closed %}disabled{% endif %}">Back to Menu</a>
+    <div class="back-to-menu">
+        
+    </div>
+
+</div>
+{% endblock %}

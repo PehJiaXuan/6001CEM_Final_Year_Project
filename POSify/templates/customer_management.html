@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer_management.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Customer Management</h1>
+    <form id="add-customer-form" class="form-inline mb-4" action="/admin/add_customer" method="POST">
+        <div class="form-group">
+            <input type="text" id="customer_name" name="customer_name" class="form-control mr-2"
+                placeholder="Customer Name" required>
+        </div>
+        <div class="form-group">
+            <input type="text" id="phone_number" name="phone_number" class="form-control mr-2"
+                placeholder="Phone Number" required>
+        </div>
+        <div class="form-group">
+            <select id="gender" name="gender" class="form-control mr-2" required>
+                <option value="" disabled selected>Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Customer</button>
+    </form>
+
+    <div id="customer-error-message" class="alert alert-danger" style="display:none;"></div>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Customer ID</th>
+                <th>Customer Name</th>
+                <th>Phone Number</th>
+                <th>Gender</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customer_list %}
+            <tr data-id="{{ customer.id }}">
+                <td>{{ customer.customer_id }}</td>
+                <td>{{ customer.customer_name }}</td>
+                <td>{{ customer.phone_number }}</td>
+                <td>{{ customer.gender }}</td>
+                <td>
+                    <button class="btn btn-warning edit-btn" data-toggle="modal" data-target="#editCustomerModal"
+                        data-id="{{ customer.customer_id }}" data-name="{{ customer.customer_name }}"
+                        data-phone="{{ customer.phone_number }}" data-gender="{{ customer.gender }}">Edit</button>
+                    <button class="btn btn-danger delete-btn" data-id="{{ customer.customer_id }}">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="editCustomerModal" tabindex="-1" role="dialog" aria-labelledby="editCustomerModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCustomerModalLabel">Edit Customer</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-customer-form">
+                    <input type="hidden" id="edit-customer-id">
+                    <div class="form-group">
+                        <label for="edit-customer-name">Customer Name</label>
+                        <input type="text" id="edit-customer-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-phone-number">Phone Number</label>
+                        <input type="text" id="edit-phone-number" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-gender">Gender</label>
+                        <select id="edit-gender" class="form-control" required>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </form>
+                <div id="edit-customer-error-message" class="alert alert-danger" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Add customer
+        $('#add-customer-form').submit(function (e) {
+            e.preventDefault();
+            $.ajax({
+                url: '/admin/add_new_customer',
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        $('#customer-error-message').text(response.message).show();
+                    }
+                },
+                error: function () {
+                    $('#customer-error-message').text('An error occurred while adding the customer.').show();
+                }
+            });
+        });
+
+        $('.edit-btn').click(function () {
+            $('#edit-customer-id').val($(this).data('id'));
+            $('#edit-customer-name').val($(this).data('name'));
+            $('#edit-phone-number').val($(this).data('phone'));
+            $('#edit-gender').val($(this).data('gender'));
+            $('#edit-customer-error-message').hide();
+        });
+
+        // Edit customer
+        $('#edit-customer-form').submit(function (e) {
+            e.preventDefault();
+            const customerId = $('#edit-customer-id').val();
+            if (!customerId) {
+                $('#edit-customer-error-message').text('Customer ID is missing.').show();
+                return;
+            }
+            $.ajax({
+                url: '/admin/edit_new_customer/' + customerId,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    customer_name: $('#edit-customer-name').val(),
+                    phone_number: $('#edit-phone-number').val(),
+                    gender: $('#edit-gender').val()
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        $('#edit-customer-error-message').text(response.message).show();
+                    }
+                },
+                error: function () {
+                    $('#edit-customer-error-message').text('An error occurred while updating the customer.').show();
+                }
+            });
+        });
+
+        // Delete customer
+        $('.delete-btn').click(function () {
+            const customerId = $(this).data('id');
+            if (!customerId) {
+                alert('Customer ID is missing.');
+                return;
+            }
+            if (confirm('Are you sure you want to delete this customer?')) {
+                $.ajax({
+                    url: '/admin/delete_new_customer/' + customerId,
+                    type: 'DELETE',
+                    success: function (response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while deleting the customer.');
+                    }
+                });
+            }
+        });
+
+
+    });
+</script>
+{% endblock %}

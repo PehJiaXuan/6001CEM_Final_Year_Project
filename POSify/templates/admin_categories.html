@@ -80,17 +80,21 @@
 
     document.querySelectorAll('.delete-btn').forEach(button => {
         button.addEventListener('click', function() {
-            const categoryId = this.closest('tr').getAttribute('data-id');
-            fetch(`/delete_category/${categoryId}`, {
-                method: 'DELETE'
-            }).then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert('Error deleting category');
-                }
-            });
+            const confirmDelete = confirm('Are you sure you want to delete this category?');
+            
+            if (confirmDelete) {
+                const categoryId = this.closest('tr').getAttribute('data-id');
+                fetch(`/delete_category/${categoryId}`, {
+                    method: 'DELETE'
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error deleting category');
+                    }
+                });
+            }
         });
     });
 

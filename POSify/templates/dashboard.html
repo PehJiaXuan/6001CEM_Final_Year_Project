@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+{% block head %}
+    <meta charset="UTF-8">
+    <title>POSify</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% extends "base.html" %}
+{% block content %}
+<body>
+
+    <h1>Staff Performance - Total Sales</h1>
+    <div class="centered-container">
+        <select id="adminMonthSelect">
+            <option value="01-2024">January 2024</option>
+            <option value="02-2024">February 2024</option>
+            <option value="03-2024">March 2024</option>
+            <option value="04-2024">April 2024</option>
+            <option value="05-2024">May 2024</option>
+            <option value="06-2024">June 2024</option>
+            <option value="07-2024">July 2024</option>
+            <option value="08-2024">August 2024</option>
+            <option value="09-2024">September 2024</option>
+            <option value="10-2024" selected>October 2024</option>
+            <option value="11-2024">November 2024</option>
+            <option value="12-2024">December 2024</option>
+        </select>
+        <button id="staffSalesFetchDataButton">Fetch Data</button>
+    </div>
+    <canvas id="staffSalesBarChart" width="800" height="400"></canvas>
+
+    <h1>Items Sold Per Payment Method</h1>
+    <div class="centered-container">
+        <select id="paymentBarChartSelect">
+            <option value="01-2024">January 2024</option>
+            <option value="02-2024">February 2024</option>
+            <option value="03-2024">March 2024</option>
+            <option value="04-2024">April 2024</option>
+            <option value="05-2024">May 2024</option>
+            <option value="06-2024">June 2024</option>
+            <option value="07-2024">July 2024</option>
+            <option value="08-2024">August 2024</option>
+            <option value="09-2024">September 2024</option>
+            <option value="10-2024" selected>October 2024</option>
+            <option value="11-2024">November 2024</option>
+            <option value="12-2024">December 2024</option>
+        </select>
+        <button id="paymentBarChartFetchDataButton">Fetch Data</button>
+    </div>
+    <canvas id="paymentBarChart" width="800" height="400"></canvas>
+
+    <h1>Sales Per Product Category</h1>
+    <div class="centered-container">
+        <select id="uniqueSalesMonthSelect">
+            <option value="01-2024">January 2024</option>
+            <option value="02-2024">February 2024</option>
+            <option value="03-2024">March 2024</option>
+            <option value="04-2024">April 2024</option>
+            <option value="05-2024">May 2024</option>
+            <option value="06-2024">June 2024</option>
+            <option value="07-2024">July 2024</option>
+            <option value="08-2024">August 2024</option>
+            <option value="09-2024">September 2024</option>
+            <option value="10-2024" selected>October 2024</option>
+            <option value="11-2024">November 2024</option>
+            <option value="12-2024">December 2024</option>
+        </select>
+        <button id="uniqueSalesFetchDataButton">Fetch Data</button>
+    </div>
+    <canvas id="salescategoryChart" width="800" height="400"></canvas>
+
+    <h1>Products Sold Per Category</h1>
+    <div class="centered-container">
+        <select id="categoryMonthSelect">
+            <option value="01-2024">January 2024</option>
+            <option value="02-2024">February 2024</option>
+            <option value="03-2024">March 2024</option>
+            <option value="04-2024">April 2024</option>
+            <option value="05-2024">May 2024</option>
+            <option value="06-2024">June 2024</option>
+            <option value="07-2024">July 2024</option>
+            <option value="08-2024">August 2024</option>
+            <option value="09-2024">September 2024</option>
+            <option value="10-2024" selected>October 2024</option>
+            <option value="11-2024">November 2024</option>
+            <option value="12-2024">December 2024</option>
+        </select>
+        <button id="categoryFetchDataButton">Fetch Data</button>
+    </div>
+    <canvas id="categoryChart" width="800" height="400"></canvas>
+
+    <h1>Daily Sales</h1>
+    <div class="centered-container">
+        <select id="salesMonthSelect">
+            <option value="01-2024">January 2024</option>
+            <option value="02-2024">February 2024</option>
+            <option value="03-2024">March 2024</option>
+            <option value="04-2024">April 2024</option>
+            <option value="05-2024">May 2024</option>
+            <option value="06-2024">June 2024</option>
+            <option value="07-2024">July 2024</option>
+            <option value="08-2024">August 2024</option>
+            <option value="09-2024">September 2024</option>
+            <option value="10-2024" selected>October 2024</option>
+            <option value="11-2024">November 2024</option>
+            <option value="12-2024">December 2024</option>
+        </select>
+        <button id="salesFetchDataButton">Fetch Data</button>
+    </div>
+    <canvas id="salesChart" width="800" height="400"></canvas>
+
+    <h1>Product Category Cluster by Time and Date</h1>
+    <div class="centered-container">
+        <select id="monthSelect">
+            <option value="01-2024">January 2024</option>
+            <option value="02-2024">February 2024</option>
+            <option value="03-2024">March 2024</option>
+            <option value="04-2024">April 2024</option>
+            <option value="05-2024">May 2024</option>
+            <option value="06-2024">June 2024</option>
+            <option value="07-2024">July 2024</option>
+            <option value="08-2024">August 2024</option>
+            <option value="09-2024">September 2024</option>
+            <option value="10-2024" selected>October 2024</option>
+            <option value="11-2024">November 2024</option>
+            <option value="12-2024">December 2024</option>
+        </select>
+        <button id="fetchDataButton">Fetch Data</button>
+    </div>
+    <canvas id="clusterChart" width="800" height="400"></canvas>
+
+    <h1>Customer Loyalty</h1>
+    <canvas id="loyaltyChart" width="800" height="400"></canvas>
+
+    <script>
+        let staffSalesChart;
+
+        function updateStaffSalesChart(data) {
+            const staffIds = [...new Set(data.map(item => item.staff_id))];
+            const totalSales = staffIds.map(staff => {
+                const staffSales = data.find(item => item.staff_id === staff);
+                return staffSales ? staffSales.total_sales : 0;
+            });
+
+            const dataset = staffIds.map((staff, index) => ({
+                label: staff,
+                data: totalSales.map((sale, i) => (i === index ? sale : 0)),
+                backgroundColor: getRandomColor(index),
+                borderColor: 'rgba(54, 162, 235, 1)',
+            }));
+
+            const ctx = document.getElementById('staffSalesBarChart').getContext('2d');
+
+            if (staffSalesChart) {
+                staffSalesChart.data.labels = staffIds;
+                staffSalesChart.data.datasets = dataset;
+                staffSalesChart.update();
+            } else {
+                // Create a new chart instance
+                staffSalesChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: staffIds,
+                        datasets: dataset
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Total Sales Amount'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    boxWidth: 20,
+                                    padding: 15
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        document.getElementById('staffSalesFetchDataButton').addEventListener('click', function() {
+            const selectedMonth = document.getElementById('adminMonthSelect').value;
+
+            fetch(`/dashboard_admin_sales?month=${selectedMonth}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Data received for Staff Performance:", data);
+                    updateStaffSalesChart(data);
+                })
+                .catch(error => console.error('Error fetching staff sales data:', error));
+        });
+
+        fetch('/dashboard_admin_sales?month=10-2024')
+            .then(response => response.json())
+            .then(data => {
+                console.log("Data received for Staff Performance:", data);
+                updateStaffSalesChart(data);
+            })
+            .catch(error => console.error('Error fetching staff sales data:', error));
+
+        let paymentChart;
+
+        function updatePaymentChart(data) {
+            const paymentMethods = data.map(item => item.payment_type);
+            const sales = data.map(item => item.total_quantity);
+
+            dataset = paymentMethods.map((method, index) => ({
+                label: method,
+                data: sales.map((sale, i) => (i === index ? sale : 0)),
+                backgroundColor: getRandomColor(index),
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }));
+
+            const paymentCtx = document.getElementById('paymentBarChart').getContext('2d');
+
+            if (paymentChart) {
+                paymentChart.data.labels = [...new Set(paymentMethods)];
+                paymentChart.data.datasets = dataset;
+                paymentChart.update();
+            } else {
+                // Create a new chart instance
+                paymentChart = new Chart(paymentCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: [...new Set(paymentMethods)],
+                        datasets: dataset
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Total Quantity Sold'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    boxWidth: 20,
+                                    padding: 15
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        document.getElementById('paymentBarChartFetchDataButton').addEventListener('click', function() {
+            const selectedMonth = document.getElementById('paymentBarChartSelect').value;
+            fetch(`/dashboard_payment_type?month=${selectedMonth}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Data received for Sales Per Payment Method:", data);
+                    updatePaymentChart(data);
+                })
+                .catch(error => console.error('Error fetching payment data:', error));
+        });
+
+        fetch('/dashboard_payment_type')
+            .then(response => response.json())
+            .then(data => {
+                console.log("Data received for Sales Per Payment Method:", data);
+                updatePaymentChart(data);
+            })
+            .catch(error => console.error('Error fetching payment data:', error));
+
+
+        let salescategoryChart;
+
+        function updateSalesCategoryChart(data) {
+            const categories = data.map(item => item.category);
+            const sales = data.map(item => item.total_sales);
+
+            dataset = categories.map((category, index) => ({
+                label: category,
+                data: sales.map((sale, i) => (i === index ? sale : 0)),
+                backgroundColor: getRandomColor(index),
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 1
+            }));
+
+            const categoryCtx = document.getElementById('salescategoryChart').getContext('2d');
+
+            if (salescategoryChart) {
+                salescategoryChart.data.labels = [...new Set(categories)];
+                salescategoryChart.data.datasets = dataset;
+                salescategoryChart.update();
+            } else {
+                // Create a new chart instance
+                salescategoryChart = new Chart(categoryCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: [...new Set(categories)],
+                        datasets: dataset
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Total Sales'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    boxWidth: 20,
+                                    padding: 15
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        document.getElementById('uniqueSalesFetchDataButton').addEventListener('click', function() {
+            const selectedMonth = document.getElementById('uniqueSalesMonthSelect').value;
+            fetch(`/dashboard_sales_by_category?month=${selectedMonth}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Data received for Sales Per Category:", data);
+                    updateSalesCategoryChart(data);
+                })
+                .catch(error => console.error('Error fetching category data:', error));
+        });
+
+        fetch('/dashboard_sales_by_category')
+            .then(response => response.json())
+            .then(data => {
+                console.log("Data received for Sales Per Category:", data);
+                updateSalesCategoryChart(data);
+            })
+            .catch(error => console.error('Error fetching category data:', error));
+
+            let salesChart;
+
+            function updateSalesChart(data) {
+                const salesData = data.map(item => ({
+                    x: item.day,
+                    y: item.total_sales
+                }));
+
+                // Create an array for sales values initialized to 0 for each day from 0 to 31
+                const monthlySales = new Array(32).fill(0);
+
+                salesData.forEach(item => {
+                    if (item.x >= 1 && item.x <= 31) {
+                        monthlySales[item.x] = item.y;
+                    }
+                });
+
+                const labels = Array.from({ length: 32 }, (_, i) => i); // [0, 1, 2, ..., 31]
+
+                const salesCtx = document.getElementById('salesChart').getContext('2d');
+                if (salesChart) {
+                    salesChart.data.datasets[0].data = monthlySales;
+                    salesChart.update();
+                } else {
+                    // Create a new chart instance
+                    salesChart = new Chart(salesCtx, {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Sales Per Day',
+                                    data: monthlySales,
+                                    fill: false,
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    tension: 0.1
+                                }]
+                            },
+                            options: {
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        title: {
+                                            display: true,
+                                            text: 'Sales Amount'
+                                        }
+                                    },
+                                    x: {
+                                        title: {
+                                            display: true,
+                                            text: 'Day of the Month'
+                                        },
+                                        min: 0,
+                                        max: 31
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+
+        document.getElementById('salesFetchDataButton').addEventListener('click', function() {
+            const selectedMonth = document.getElementById('salesMonthSelect').value;
+            fetch(`/dashboard_sales?month=${selectedMonth}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Data received for Sales Per Day:", data);
+                    updateSalesChart(data);
+                })
+                .catch(error => console.error('Error fetching sales data:', error));
+        });
+
+        fetch('/dashboard_sales')
+            .then(response => response.json())
+            .then(data => {
+                console.log("Data received for Food Category Cluster by Time and Date:", data);
+                updateSalesChart(data);
+            })
+            .catch(error => console.error('Error fetching scatter data:', error));
+    
+            let categoryChart;
+
+            function updateCategoryChart(data) {
+                const categories = data.map(item => item.category);
+                const counts = data.map(item => item.count);
+                
+                const dataset = categories.map((category, index) => ({
+                    label: category,
+                    data: counts.map((count, i) => (i === index ? count : 0)),
+                    backgroundColor: getRandomColor(index),
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }));
+
+                const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+
+                if (categoryChart) {
+                    categoryChart.data.labels = [...new Set(categories)];
+                    categoryChart.data.datasets = dataset;
+                    categoryChart.update();
+                } else {
+                    // Create a new chart instance
+                    categoryChart = new Chart(categoryCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: [...new Set(categories)],
+                            datasets: dataset
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Total Sales'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        boxWidth: 20,
+                                        padding: 15
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            document.getElementById('categoryFetchDataButton').addEventListener('click', function() {
+                const selectedMonth = document.getElementById('categoryMonthSelect').value;
+                fetch(`/dashboard_data?month=${selectedMonth}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Data received for Product Category Clustering:", data);
+                        updateCategoryChart(data);
+                    })
+                    .catch(error => console.error('Error fetching category data:', error));
+            });
+
+            fetch('/dashboard_data')
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Data received for Product Category Clustering:", data);
+                    updateCategoryChart(data);
+                })
+                .catch(error => console.error('Error fetching category data:', error));
+
+                fetch('/dashboard_customer_loyalty')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Data received for Customer Loyalty:", data);
+
+                        const loyaltyData = data.map(item => ({
+                            x: item.days_registered,
+                            y: item.points_per_day,
+                            customer_name: item.customer_name,
+                            customer_id: item.customer_id,
+                            rank: item.rank
+                        }));
+
+                        const categoryColors = {
+                            'Low': 'rgba(75, 192, 192, 0.8)',
+                            'Medium': 'rgba(255, 159, 64, 0.8)',
+                            'High': 'rgba(153, 102, 255, 0.8)',
+                        };
+
+                        const datasets = Object.keys(categoryColors).map(rank => ({
+                            label: rank,
+                            data: loyaltyData
+                                .filter(item => item.rank === rank)
+                                .map(item => ({
+                                    x: item.x,
+                                    y: item.y,
+                                    customer_name: item.customer_name,
+                                    customer_id: item.customer_id
+                                })),
+                            backgroundColor: categoryColors[rank],
+                            pointRadius: 5,
+                            pointBackgroundColor: categoryColors[rank]
+                        }));
+
+                        const loyaltyCtx = document.getElementById('loyaltyChart').getContext('2d');
+                        
+                        new Chart(loyaltyCtx, {
+                            type: 'scatter',
+                            data: {
+                                datasets: datasets
+                            },
+                            options: {
+                                scales: {
+                                    x: {
+                                        title: {
+                                            display: true,
+                                            text: 'Days Spent'
+                                        }
+                                    },
+                                    y: {
+                                        title: {
+                                            display: true,
+                                            text: 'Points Per Day'
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const customerName = context.raw.customer_name;
+                                                const customerId = context.raw.customer_id;
+                                                const xValue = context.raw.x;
+                                                const yValue = context.raw.y;
+                                                return [
+                                                    `Customer: ${customerName}`,
+                                                    `ID: ${customerId}`,
+                                                    `Days: ${xValue}`,
+                                                    `Points/Day: ${yValue}`
+                                                ];
+                                            }
+                                        }
+                                    },
+                                    legend: {
+                                        display: true,
+                                        position: 'top',
+                                        labels: {
+                                            boxWidth: 20,
+                                            padding: 15
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+
+function getRandomColor(index) {
+    const hue = (index * 360) / 12;
+    return `hsl(${hue}, 70%, 50%)`;
+}
+
+const foodCategoryColors = {};
+
+fetch('/categories')
+    .then(response => response.json())
+    .then(data => {
+        console.log("Data received for Food Categories:", data);
+        
+        data.forEach((category, index) => {
+            foodCategoryColors[category] = getRandomColor(index);
+        });
+        
+        fetch('/dashboard_timestamps')
+            .then(response => response.json())
+            .then(scatterData => {
+                console.log("Data received for Food Category Cluster by Time and Date:", scatterData);
+                updateChart(scatterData);
+            })
+            .catch(error => console.error('Error fetching scatter data:', error));
+    })
+    .catch(error => console.error('Error fetching categories:', error));
+
+    let clusterChart;
+    
+    async function updateChart(data) {
+        const scatterData = data.map(item => ({
+            x: item.day,
+            y: item.hour,
+            category: item.category
+        }));
+
+        const datasets = Object.keys(foodCategoryColors).map(category => ({
+            label: category,
+            data: scatterData
+                .filter(item => item.category === category)
+                .map(item => ({
+                    x: item.x,
+                    y: item.y,
+                })),
+            backgroundColor: foodCategoryColors[category],
+            pointRadius: 5,
+            pointBackgroundColor: foodCategoryColors[category]
+        }));
+
+        const clusterCtx = document.getElementById('clusterChart').getContext('2d');
+
+        if (clusterChart) {
+            clusterChart.data.datasets = datasets;
+            clusterChart.update();
+        } else {
+            clusterChart = new Chart(clusterCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            min: 1,
+                            max: 31,
+                            title: {
+                                display: true,
+                                text: 'Day of the Month'
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 24,
+                            title: {
+                                display: true,
+                                text: 'Time of the Day'
+                            },
+                            ticks: {
+                                callback: value => {
+                                    const hour = Math.floor(value);
+                                    const minutes = Math.round((value - hour) * 60).toString().padStart(2, '0');
+                                    return `${hour}:${minutes}`;
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const rawX = context.raw.x;
+                                    const rawY = context.raw.y;
+
+                                    // Format X as "Day 23 12:00"
+                                    const day = Math.floor(rawX);
+                                    const hourX = Math.round((rawX - day) * 24);
+                                    const formattedX = `Day ${day} ${hourX}:00`;
+
+                                    // Format Y as "Hour 01:30"
+                                    const hourY = Math.floor(rawY);
+                                    const minutesY = Math.round((rawY - hourY) * 60).toString().padStart(2, '0');
+                                    const formattedY = `Hour ${hourY}:${minutesY}`;
+
+                                    return `${formattedX}, ${formattedY}`;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 20,
+                                padding: 15,
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    document.getElementById('fetchDataButton').addEventListener('click', function() {
+        const selectedMonth = document.getElementById('monthSelect').value;
+        fetch(`/dashboard_timestamps?month=${selectedMonth}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log("Data received for Food Category Cluster by Time and Date:", data);
+                updateChart(data);
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    });
+
+    </script>
+</body>
+{% endblock %}

@@ -22,9 +22,8 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="form-group mr-2" id="quantity-input-group">
-            <input type="number" id="product-quantity" class="form-control" placeholder="Product Quantity" min="0"
-                required>
+        <div class="form-group mr-2" id="quantity-input-group" style="margin-top: 10px;">
+            <input type="number" id="product-quantity" class="form-control" placeholder="Product Quantity" min="0" required>
         </div>
         <div class="form-group mr-2">
             <select id="product-quantity-type" class="form-control" required>
@@ -40,6 +39,7 @@
     <table class="table table-bordered">
         <thead>
             <tr>
+                <th>Product ID</th>
                 <th>Product Name</th>
                 <th>Price</th>
                 <th>Quantity</th>
@@ -49,6 +49,7 @@
         <tbody>
             {% for product in products %}
             <tr data-id="{{ product.id }}">
+                <td>{{ product.id }}</td>
                 <td>{{ product.name }}</td>
                 <td>RM{{ product.price }}</td>
                 <td>{{ product.quantity }}</td>
@@ -65,7 +66,6 @@
     {% endfor %}
 </div>
 
-<!-- Edit Product Modal -->
 <div class="modal fade" id="editProductModal" tabindex="-1" role="dialog" aria-labelledby="editProductModalLabel"
     aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -172,7 +172,7 @@
         }).then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    location.reload(); // Reload the page to see the newly added product
+                    location.reload();
                 } else {
                     document.getElementById('product-error-message').textContent = data.message;
                     document.getElementById('product-error-message').style.display = 'block';
@@ -191,6 +191,22 @@
         }
     });
 
+    function toggleEditQuantityField() {
+        const editQuantityInputGroup = document.getElementById('edit-quantity-input-group');
+        const quantityType = document.getElementById('edit-product-quantity-type').value;
+
+        if (quantityType === 'unlimited') {
+            editQuantityInputGroup.style.display = 'none';
+            document.getElementById('edit-product-quantity').value = '';
+            document.getElementById('edit-product-quantity').removeAttribute('required');
+        } else {
+            editQuantityInputGroup.style.display = 'block';
+            document.getElementById('edit-product-quantity').setAttribute('required', 'required');
+        }
+    }
+
+    document.getElementById('edit-product-quantity-type').addEventListener('change', toggleEditQuantityField);
+
     document.querySelectorAll('.edit-btn').forEach(button => {
         button.addEventListener('click', function () {
             const productId = this.getAttribute('data-id');
@@ -198,23 +214,32 @@
             const productPrice = this.getAttribute('data-price');
             const productCategory = this.getAttribute('data-category');
             const productQuantity = this.getAttribute('data-quantity');
+            const productQuantityType = this.getAttribute('data-quantity-type') || 'fixed';
 
             document.getElementById('edit-product-id').value = productId;
             document.getElementById('edit-product-name').value = productName;
             document.getElementById('edit-product-price').value = productPrice;
             document.getElementById('edit-product-category').value = productCategory;
             document.getElementById('edit-product-quantity').value = productQuantity;
+            document.getElementById('edit-product-quantity-type').value = productQuantityType;
+
+            toggleEditQuantityField();
         });
     });
 
     document.getElementById('edit-product-form').addEventListener('submit', function (event) {
         event.preventDefault();
+
         const productId = document.getElementById('edit-product-id').value;
         const name = document.getElementById('edit-product-name').value;
         const price = document.getElementById('edit-product-price').value;
         const category = document.getElementById('edit-product-category').value;
-        const quantity = parseInt(document.getElementById('edit-product-quantity').value, 10);
+        let quantity = parseInt(document.getElementById('edit-product-quantity').value, 10);
         const quantityType = document.getElementById('edit-product-quantity-type').value;
+
+        if (quantityType === 'unlimited') {
+            quantity = null;
+        }
 
         if (!validateProductPrice(price)) {
             document.getElementById('edit-product-error-message').textContent = 'Please enter a valid price with up to 2 decimal places.';
@@ -222,7 +247,7 @@
             return;
         }
 
-        if (parseFloat(price) < 0 || quantity < 0) {
+        if (parseFloat(price) < 0 || (quantity !== null && quantity < 0)) {
             document.getElementById('edit-product-error-message').textContent = 'Price and quantity cannot be negative.';
             document.getElementById('edit-product-error-message').style.display = 'block';
             return;
@@ -234,22 +259,29 @@
             return;
         }
 
-        fetch('/edit_product', {
-            method: 'POST',
+        fetch(`/edit_product/${productId}`, {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ id: productId, name: name, price: parseFloat(price).toFixed(2), category: category, quantity: quantity, quantity_type: quantityType }),
+            body: JSON.stringify({
+                name: name,
+                price: parseFloat(price).toFixed(2),
+                category: category,
+                quantity: quantity,
+                quantity_type: quantityType
+            }),
         }).then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    location.reload(); // Reload the page to see the updated product
+                    location.reload();
                 } else {
                     document.getElementById('edit-product-error-message').textContent = data.message;
                     document.getElementById('edit-product-error-message').style.display = 'block';
                 }
             });
     });
+
 
     document.querySelectorAll('.delete-btn').forEach(button => {
         button.addEventListener('click', function () {
@@ -265,7 +297,7 @@
                 }).then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            row.remove(); // Remove the deleted product row from the table
+                            row.remove();
                         } else {
                             alert(data.message);
                         }

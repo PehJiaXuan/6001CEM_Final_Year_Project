@@ -80,17 +80,22 @@
 
     document.querySelectorAll('.delete-btn').forEach(button => {
         button.addEventListener('click', function() {
-            const paymentId = this.closest('tr').getAttribute('data-id');
-            fetch(`/delete_payment_type/${paymentId}`, {
-                method: 'DELETE'
-            }).then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert('Error deleting payment type');
-                }
-            });
+            const confirmation = confirm('Are you sure you want to delete this payment type?');
+
+            if (confirmation) {
+                const paymentId = this.closest('tr').getAttribute('data-id');
+                fetch(`/delete_payment_type/${paymentId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error deleting payment type');
+                    }
+                });
+            }
         });
     });
 

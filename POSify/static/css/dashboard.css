@@ -1,0 +1,90 @@
+/* Reset some default styles */
+body, h1, select, button {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4; /* Light grey background */
+    color: #333; /* Dark text for contrast */
+    padding: 20px;
+}
+
+/* Title styles */
+h1 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center; /* Center align titles */
+}
+
+/* Styling for select fields */
+select {
+    width: 200px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff; /* White background for selects */
+    margin-right: 10px; /* Space between select and button */
+    font-size: 16px;
+    align-items: center;
+}
+
+/* Button styles */
+button {
+    padding: 10px 15px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #007bff; /* Bootstrap primary color */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}
+
+/* Canvas styles */
+canvas {
+    display: block;
+    margin: 20px auto; /* Center canvas elements */
+    border: 1px solid #ccc; /* Light border around charts */
+    border-radius: 5px; /* Rounded corners */
+}
+
+/* Media query for responsive design */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 20px; /* Smaller titles on mobile */
+    }
+
+    select {
+        width: 100%; /* Full width for select on small screens */
+        margin-bottom: 10px; /* Margin at the bottom */
+    }
+
+    button {
+        width: 100%; /* Full width for buttons on small screens */
+        margin-bottom: 10px; /* Space below buttons */
+    }
+}
+
+.centered-container {
+    display: flex;               /* Use flexbox for alignment */
+    justify-content: center;     /* Center items horizontally */
+    align-items: center;         /* Center items vertically (if necessary) */
+    margin-bottom: 20px;        /* Space below the container */
+}
+
+select, button {
+    margin-right: 10px;         /* Space between the select and button */
+}
+
+select {
+    width: 200px;               /* Width of the dropdown */
+}

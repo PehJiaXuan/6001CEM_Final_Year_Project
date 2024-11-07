@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POSify</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/view_transaction.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/view_transaction_detail.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/shift_register.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
+
 <body>
     <div class="sidebar">
         <div class="sidebar-toggle">
@@ -19,30 +24,77 @@
         <ul>
             <!-- Check if user is admin or staff -->
             {% if session['email'] == 'jolynpeh03@gmail.com' %}
-                <li><a href="{{ url_for('admin_home') }}"><i class="fas fa-home icon"></i><span class="text">Home</span></a></li>
-                <li><a href="{{ url_for('admin_categories') }}"><i class="fas fa-tags icon"></i><span class="text">Categories</span></a></li>
-                <li><a href="{{ url_for('admin_products') }}"><i class="fas fa-box icon"></i><span class="text">Products</span></a></li>
-                <li><a href="{{ url_for('menu') }}"><i class="fas fa-utensils icon"></i><span class="text">Menu</span></a></li>
-                <li><a href="{{ url_for('admin_payment_types') }}"><i class="fas fa-credit-card icon"></i><span class="text">Payment Management</span></a></li>
-                <li><a href="{{ url_for('admin_staff_management') }}"><i class="fas fa-users icon"></i><span class="text">Staff Management</span></a></li>
+            <li><a href="{{ url_for('admin_home') }}"><i class="fas fa-users icon"></i><span
+                class="text">Home Page</span></a></li>
+            <li><a href="{{ url_for('admin_staff_management') }}"><i class="fas fa-users icon"></i><span
+                        class="text">Staff Management</span></a></li>
+            <li><a href="{{ url_for('admin_categories') }}"><i class="fas fa-tags icon"></i><span class="text">Category
+                        Management</span></a></li>
+            <li><a href="{{ url_for('admin_products') }}"><i class="fas fa-box icon"></i><span class="text">Product
+                        Management</span></a></li>
+            <li><a href="{{ url_for('admin_payment_types') }}"><i class="fas fa-credit-card icon"></i><span
+                        class="text">Payment Management</span></a></li>
+            <li><a href="{{ url_for('customer_management') }}"><i class="fas fa-user icon"></i><span
+                        class="text">Customer Management</span></a></li>
+            <li><a href="{{ url_for('shift_register') }}"><i class="fas fa-cash-register icon"></i><span
+                        class="text">Shift Register</span></a></li>
+            <li><a href="{{ url_for('menu') }}" class="{% if not shift_opened or shift_closed %}disabled{% endif %}"><i
+                        class="fas fa-utensils icon"></i><span class="text">Menu</span></a></li>
+            <li><a href="{{ url_for('view_transactions') }}"><i class="fas fa-receipt icon"></i><span class="text">View
+                        Transactions</span></a></li>
+
+            <!-- Owner view -->
+            {% elif session['email'] == 'jolynpeh03@yahoo.com' %}
+            <li><a href="{{ url_for('owner_home') }}"><i class="fas fa-users icon"></i><span
+                class="text">Home Page</span></a></li>
+            <li><a href="{{ url_for('admin_staff_management') }}"><i class="fas fa-users icon"></i><span
+                        class="text">Staff Management</span></a></li>
+            <li><a href="{{ url_for('admin_categories') }}"><i class="fas fa-tags icon"></i><span class="text">Category
+                        Management</span></a></li>
+            <li><a href="{{ url_for('admin_products') }}"><i class="fas fa-box icon"></i><span class="text">Product
+                        Management</span></a></li>
+            <li><a href="{{ url_for('admin_payment_types') }}"><i class="fas fa-credit-card icon"></i><span
+                        class="text">Payment Management</span></a></li>
+            <li><a href="{{ url_for('customer_management') }}"><i class="fas fa-user icon"></i><span
+                        class="text">Customer Management</span></a></li>
+            <li><a href="{{ url_for('shift_register') }}"><i class="fas fa-cash-register icon"></i><span
+                        class="text">Shift Register</span></a></li>
+            <li><a href="{{ url_for('menu') }}" class="{% if not shift_opened or shift_closed %}disabled{% endif %}"><i
+                        class="fas fa-utensils icon"></i><span class="text">Menu</span></a></li>
+            <li><a href="{{ url_for('view_transactions') }}"><i class="fas fa-receipt icon"></i><span class="text">View
+                        Transactions</span></a></li>
+            <li><a href="{{ url_for('export_transactions') }}"><i class="fas fa-chart-line icon"></i><span
+                        class="text">Dashboard</span></a></li>
             {% else %}
-                <!-- Staff View -->
-                <li><a href="{{ url_for('staff_home') }}"><i class="fas fa-home icon"></i><span class="text">Home</span></a></li>
-                <li><a href="{{ url_for('menu') }}"><i class="fas fa-utensils icon"></i><span class="text">Menu</span></a></li>
+
+            <!-- Staff view -->
+            <li><a href="{{ url_for('staff_home') }}"><i class="fas fa-home icon"></i><span class="text">Staff
+                        Homepage</span></a></li>
+            <li><a href="{{ url_for('shift_register') }}"><i class="fas fa-cash-register icon"></i><span
+                        class="text">Shift Register</span></a></li>
+            <li><a href="{{ url_for('menu') }}" class="{% if not shift_opened or shift_closed %}disabled{% endif %}"><i
+                        class="fas fa-utensils icon"></i><span class="text">Menu</span></a></li>
+            <li><a href="{{ url_for('view_transactions') }}"><i class="fas fa-receipt icon"></i><span class="text">View
+                        Transactions</span></a></li>
+            <li><a href="{{ url_for('customer_management') }}"><i class="fas fa-user icon"></i><span
+                        class="text">Customer Management</span></a></li>
             {% endif %}
-            <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt icon"></i><span class="text">Logout</span></a></li>
-        </ul>        
+
+            <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt icon"></i><span
+                        class="text">Logout</span></a></li>
+        </ul>
     </div>
     <div class="content">
         {% block content %}{% endblock %}
     </div>
     <script>
-        $(document).ready(function(){
-            $('.sidebar-toggle').click(function(){
+        $(document).ready(function () {
+            $('.sidebar-toggle').click(function () {
                 $('.sidebar').toggleClass('collapsed');
                 $('.content').toggleClass('expanded');
             });
         });
     </script>
 </body>
+
 </html>

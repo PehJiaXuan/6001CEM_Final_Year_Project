@@ -5,19 +5,16 @@
 {% endblock %}
 
 {% block content %}
-<div class="container text-center content"> <!-- Add the content class for margin adjustment -->
-    <!-- Back Button to go back to the menu -->
+<div class="container text-center content">
     <div class="text-left">
         <a href="{{ url_for('menu') }}" class="btn btn-secondary mb-3" onclick="window.location.reload();">Back to Menu</a>
     </div>
 
-    <!-- Total Amount Header -->
     <h1>Total Amount: RM<span id="total-amount">{{ total_amount }}</span></h1>
 
-    <!-- Two-column layout -->
-    <div class="row">
+    <div class="row" style="padding-top: 20px;">
         <!-- Left Column: Order List -->
-        <div class="col-md-8" style="padding-left: 100px;">
+        <div class="col-md-8" style="padding-left: 150px;">
             <div class="order-list">
                 <h2>Order List</h2>
                 <ul id="order-items">
@@ -36,7 +33,7 @@
         </div>
 
         <!-- Right Column: Payment Options -->
-        <div class="col-md-4">
+        <div class="col-md-4" style="right: 30px;">
             <div class="payment-options" style="border: 1px solid #ddd; padding: 15px; border-radius: 5px;">
                 <h3>Select Payment Method</h3>
                 <div class="row">
@@ -53,15 +50,12 @@
 
 <script>
     $(document).ready(function() {
-        // Convert the Jinja2 template variables into usable JavaScript variables
-        let orderItems = JSON.parse('{{ order_items|tojson|safe }}');  // Safely parse the JSON string
-        let totalAmount = "{{ total_amount }}";  // Render total amount as a string
-
-        // Handle payment button click
+        let orderItems = JSON.parse('{{ order_items|tojson|safe }}');
+        let totalAmount = "{{ total_amount }}";
+        
         $('.payment-button').click(function() {
             let paymentType = $(this).data('payment-type');
 
-            // Send the order details and payment type to the process_payment route
             $.ajax({
                 url: "{{ url_for('process_payment') }}",
                 method: 'POST',
@@ -72,7 +66,6 @@
                     order_items: orderItems
                 }),
                 success: function(response) {
-                    // Redirect to the payment success page upon success
                     window.location.href = "{{ url_for('payment_success') }}?total_amount=" + encodeURIComponent(totalAmount);
                 },
                 error: function(error) {
